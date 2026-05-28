@@ -239,7 +239,3 @@ npm run dev          # http://localhost:5173
 | `JWT_REFRESH_SECRET` | Secret for signing refresh tokens *(planned)* |
 
 ---
-
-## License
-
-MIT
