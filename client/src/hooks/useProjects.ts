@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getProjects, createProject } from '../api/projects';
+import { getProjects, createProject , getProject } from '../api/projects';
 
 export function useProjects(workspaceId: string) {
   return useQuery({
@@ -16,5 +16,14 @@ export function useCreateProject(workspaceId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['projects', workspaceId] });
     },
+  });
+}
+
+
+export function useProject(id: string) {
+  return useQuery({
+    queryKey: ['project', id],
+    queryFn: () => getProject(id),
+    enabled: !!id,
   });
 }

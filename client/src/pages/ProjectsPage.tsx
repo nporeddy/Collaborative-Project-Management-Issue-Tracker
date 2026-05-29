@@ -21,22 +21,21 @@ export default function ProjectsPage() {
 
   return (
     <div className="space-y-8">
-      {/* Breadcrumb */}
-      <div className="text-sm">
-        <Link to="/workspaces" className="text-text-muted hover:text-text transition-colors">
-          Workspaces
-        </Link>
-        <span className="mx-2 text-text-subtle">/</span>
-        <span className="text-text">Projects</span>
-      </div>
+     {/* Back link */}
+<Link
+  to="/workspaces"
+  className="inline-flex items-center text-sm text-text-muted hover:text-text transition-colors"
+>
+  <span className="mr-1">←</span> Back to Workspaces
+</Link>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-text">Projects</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Projects group related issues within a workspace.
-        </p>
-      </div>
+{/* Header */}
+<div>
+  <h1 className="text-2xl font-semibold text-text">Projects</h1>
+  <p className="mt-1 text-sm text-text-muted">
+    Projects group related issues within a workspace.
+  </p>
+</div>
 
       {/* Create form */}
       <Card className="!p-4">

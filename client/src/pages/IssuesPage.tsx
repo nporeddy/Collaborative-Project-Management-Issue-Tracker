@@ -7,6 +7,7 @@ import Card from '../components/Card';
 import Badge from '../components/Badge';
 import EmptyState from '../components/EmptyState';
 import Spinner from '../components/Spinner';
+import { useProject } from '../hooks/useProjects';
 
 const statusTone = {
   TODO: 'todo',
@@ -32,6 +33,7 @@ const statusLabel = {
 export default function IssuesPage() {
   const { projectId } = useParams<{ projectId: string }>();
   const { data, isLoading, isError } = useIssues(projectId!);
+  const { data: project } = useProject(projectId!);   
   const createMutation = useCreateIssue(projectId!);
   const [title, setTitle] = useState('');
 
@@ -43,30 +45,45 @@ export default function IssuesPage() {
   return (
     <div className="space-y-8">
       {/* Breadcrumb */}
-      <div className="text-sm">
-        <Link to="/workspaces" className="text-text-muted hover:text-text transition-colors">
-          Workspaces
-        </Link>
-        <span className="mx-2 text-text-subtle">/</span>
-        <span className="text-text-muted">Project</span>
-        <span className="mx-2 text-text-subtle">/</span>
-        <span className="text-text">Issues</span>
-      </div>
+        {/* Back link */}
+    {project ? (
+      <Link
+        to={`/workspaces/${project.workspaceId}/projects`}
+        className="inline-flex items-center text-sm text-text-muted hover:text-text transition-colors"
+      >
+        <span className="mr-1">←</span> Back to Projects
+      </Link>
+    ) : (
+      <span className="inline-flex items-center text-sm text-text-subtle">
+        <span className="mr-1">←</span> Back to Projects
+      </span>
+    )}
 
-      {/* Header */}
-      <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-2xl font-semibold text-text">Issues</h1>
-          <p className="mt-1 text-sm text-text-muted">
-            Track work items across the project.
-          </p>
-        </div>
-        {data && (
-          <span className="text-sm text-text-muted">
-            {data.total} {data.total === 1 ? 'issue' : 'issues'}
-          </span>
-        )}
+    {/* Header */}
+    <div className="flex items-end justify-between">
+      <div>
+        <h1 className="text-2xl font-semibold text-text">
+          {project ? (
+            <>
+              <span className="text-text-muted font-normal">{project.name}</span>
+              <span className="mx-2 text-text-subtle font-normal">·</span>
+              Issues
+            </>
+          ) : (
+            'Issues'
+          )}
+        </h1>
+        <p className="mt-1 text-sm text-text-muted">
+          Track work items across the project.
+        </p>
       </div>
+      {data && (
+        <span className="text-sm text-text-muted">
+          {data.total} {data.total === 1 ? 'issue' : 'issues'}
+        </span>
+      )}
+    </div>
+
 
       {/* Create form */}
       <Card className="!p-4">
