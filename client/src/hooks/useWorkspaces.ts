@@ -1,8 +1,8 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getWorkspaces, createWorkspace } from '../api/workspaces';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { getWorkspaces, createWorkspace } from "../api/workspaces";
 
 export function useWorkspaces() {
-  return useQuery({ queryKey: ['workspaces'], queryFn: getWorkspaces });
+  return useQuery({ queryKey: ["workspaces"], queryFn: getWorkspaces });
 }
 
 export function useCreateWorkspace() {
@@ -11,7 +11,7 @@ export function useCreateWorkspace() {
     mutationFn: createWorkspace,
     onSuccess: () => {
       // refetch the list automatically after creating
-      queryClient.invalidateQueries({ queryKey: ['workspaces'] });
+      queryClient.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });
 }

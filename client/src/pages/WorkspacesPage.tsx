@@ -1,20 +1,20 @@
-import { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useWorkspaces, useCreateWorkspace } from '../hooks/useWorkspaces';
-import Button from '../components/Button';
-import Input from '../components/Input';
-import Card from '../components/Card';
-import EmptyState from '../components/EmptyState';
-import Spinner from '../components/Spinner';
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { useWorkspaces, useCreateWorkspace } from "../hooks/useWorkspaces";
+import Button from "../components/Button";
+import Input from "../components/Input";
+import Card from "../components/Card";
+import EmptyState from "../components/EmptyState";
+import Spinner from "../components/Spinner";
 
 export default function WorkspacesPage() {
   const { data: workspaces, isLoading, isError } = useWorkspaces();
   const createMutation = useCreateWorkspace();
-  const [name, setName] = useState('');
+  const [name, setName] = useState("");
 
   const handleCreate = () => {
     if (!name.trim()) return;
-    createMutation.mutate(name, { onSuccess: () => setName('') });
+    createMutation.mutate(name, { onSuccess: () => setName("") });
   };
 
   return (
@@ -33,11 +33,14 @@ export default function WorkspacesPage() {
           <Input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleCreate()}
+            onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             placeholder="New workspace name"
           />
-          <Button onClick={handleCreate} disabled={createMutation.isPending || !name.trim()}>
-            {createMutation.isPending ? 'Creating…' : 'Create'}
+          <Button
+            onClick={handleCreate}
+            disabled={createMutation.isPending || !name.trim()}
+          >
+            {createMutation.isPending ? "Creating…" : "Create"}
           </Button>
         </div>
       </Card>
@@ -57,7 +60,11 @@ export default function WorkspacesPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {workspaces.map((ws) => (
-            <Link key={ws.id} to={`/workspaces/${ws.id}/projects`} className="block group">
+            <Link
+              key={ws.id}
+              to={`/workspaces/${ws.id}/projects`}
+              className="block group"
+            >
               <Card className="group-hover:border-primary cursor-pointer h-full">
                 <div className="flex items-start justify-between">
                   <div>
@@ -68,7 +75,9 @@ export default function WorkspacesPage() {
                       Created {new Date(ws.createdAt).toLocaleDateString()}
                     </p>
                   </div>
-                  <span className="text-text-subtle group-hover:text-primary transition-colors">→</span>
+                  <span className="text-text-subtle group-hover:text-primary transition-colors">
+                    →
+                  </span>
                 </div>
               </Card>
             </Link>

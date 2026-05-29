@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from "./client";
 
 export interface Workspace {
   id: string;
@@ -7,11 +7,11 @@ export interface Workspace {
 }
 
 export const getWorkspaces = async (): Promise<Workspace[]> => {
-  const res = await api.get('/workspaces');
+  const res = await api.get("/workspaces");
   return res.data;
 };
 
 export const createWorkspace = async (name: string): Promise<Workspace> => {
-  const res = await api.post('/workspaces', { name });
+  const res = await api.post("/workspaces", { name });
   return res.data;
 };

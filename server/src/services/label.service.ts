@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma } from "../lib/prisma.js";
 
 export const labelService = {
   create: (issueId: string, data: { name: string; color: string }) =>

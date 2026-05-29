@@ -1,5 +1,5 @@
-import { prisma } from '../lib/prisma.js';
-import type { Status, Priority } from '@prisma/client';
+import { prisma } from "../lib/prisma.js";
+import type { Status, Priority } from "@prisma/client";
 
 interface ListParams {
   projectId: string;
@@ -12,7 +12,12 @@ interface ListParams {
 export const issueService = {
   create: (
     projectId: string,
-    data: { title: string; description?: string; priority?: Priority; assigneeId?: string }
+    data: {
+      title: string;
+      description?: string;
+      priority?: Priority;
+      assigneeId?: string;
+    },
   ) => prisma.issue.create({ data: { ...data, projectId } }),
 
   async list({ projectId, status, assigneeId, page, limit }: ListParams) {
@@ -25,7 +30,7 @@ export const issueService = {
     const [items, total] = await Promise.all([
       prisma.issue.findMany({
         where,
-        orderBy: { createdAt: 'desc' },
+        orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
       }),
@@ -49,7 +54,13 @@ export const issueService = {
 
   update: (
     id: string,
-    data: { title?: string; description?: string; status?: Status; priority?: Priority; assigneeId?: string }
+    data: {
+      title?: string;
+      description?: string;
+      status?: Status;
+      priority?: Priority;
+      assigneeId?: string;
+    },
   ) => prisma.issue.update({ where: { id }, data }),
 
   remove: (id: string) => prisma.issue.delete({ where: { id } }),

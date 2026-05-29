@@ -1,4 +1,4 @@
-import { prisma } from '../lib/prisma.js';
+import { prisma } from "../lib/prisma.js";
 
 export const commentService = {
   create: (issueId: string, data: { body: string; authorId: string }) =>
@@ -7,7 +7,7 @@ export const commentService = {
   listByIssue: (issueId: string) =>
     prisma.comment.findMany({
       where: { issueId },
-      orderBy: { createdAt: 'asc' },
+      orderBy: { createdAt: "asc" },
       include: { author: true },
     }),
 

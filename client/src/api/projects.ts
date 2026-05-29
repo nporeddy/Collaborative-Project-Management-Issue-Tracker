@@ -1,4 +1,4 @@
-import { api } from './client';
+import { api } from "./client";
 
 export interface Project {
   id: string;
@@ -15,7 +15,7 @@ export const getProjects = async (workspaceId: string): Promise<Project[]> => {
 
 export const createProject = async (
   workspaceId: string,
-  data: { name: string; key: string }
+  data: { name: string; key: string },
 ): Promise<Project> => {
   const res = await api.post(`/workspaces/${workspaceId}/projects`, data);
   return res.data;

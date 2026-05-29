@@ -1,7 +1,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: 'Inter', system-ui, sans-serif;
+  --font-sans: "Inter", system-ui, sans-serif;
 
   --color-background: #fafafa;
   --color-surface: #ffffff;
@@ -20,7 +20,8 @@
   --color-danger: #ef4444;
 }
 
-html, body {
+html,
+body {
   font-family: var(--font-sans);
   background: var(--color-background);
   color: var(--color-text);

@@ -1,5 +1,5 @@
-import { Link, useLocation } from 'react-router-dom';
-import type { ReactNode } from 'react';
+import { Link, useLocation } from "react-router-dom";
+import type { ReactNode } from "react";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -17,9 +17,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           <Link
             to="/workspaces"
             className={`block px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-              isActive('/workspaces') || isActive('/projects')
-                ? 'bg-gray-100 text-text'
-                : 'text-text-muted hover:bg-gray-50 hover:text-text'
+              isActive("/workspaces") || isActive("/projects")
+                ? "bg-gray-100 text-text"
+                : "text-text-muted hover:bg-gray-50 hover:text-text"
             }`}
           >
             Workspaces
