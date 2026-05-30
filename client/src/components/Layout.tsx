@@ -1,9 +1,20 @@
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
+import { useAuth } from "../contexts/AuthContext";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, logout } = useAuth();
+
   const isActive = (path: string) => location.pathname.startsWith(path);
+
+  async function handleLogout() {
+    await logout();
+    navigate("/login", { replace: true });
+  }
+
+  const initial = user?.name?.charAt(0).toUpperCase() ?? "?";
 
   return (
     <div className="flex min-h-screen bg-background">
@@ -26,9 +37,28 @@ export default function Layout({ children }: { children: ReactNode }) {
           </Link>
         </nav>
 
-        <div className="px-6 py-4 border-t border-border text-xs text-text-subtle">
-          v0.1.0
-        </div>
+        {/* User block */}
+        {user && (
+          <div className="px-3 py-3 border-t border-border">
+            <div className="flex items-center gap-3 px-3 py-2">
+              <span className="w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center shrink-0">
+                {initial}
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-medium text-text truncate">
+                  {user.name}
+                </p>
+                <p className="text-xs text-text-muted truncate">{user.email}</p>
+              </div>
+            </div>
+            <button
+              onClick={handleLogout}
+              className="mt-1 w-full text-left px-3 py-2 rounded-md text-sm text-text-muted hover:bg-gray-50 hover:text-text transition-colors"
+            >
+              Sign out
+            </button>
+          </div>
+        )}
       </aside>
 
       {/* Main */}
