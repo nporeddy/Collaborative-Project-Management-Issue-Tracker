@@ -4,7 +4,7 @@ import { commentService } from "../services/comment.service.js";
 
 const createSchema = z.object({
   body: z.string().min(1).max(5000),
-  authorId: z.string().min(1), // temporary — replaced by the logged-in user in Week 2 (auth)
+  // ← removed: authorId. Comes from req.user now, not the request body.
 });
 
 export const commentController = {
@@ -13,14 +13,21 @@ export const commentController = {
       const { issueId } = req.params;
       if (typeof issueId !== "string")
         return res.status(400).json({ error: "Invalid issueId" });
+      if (!req.user)
+        return res.status(401).json({ error: "Not authenticated" });
+
       const data = createSchema.parse(req.body);
-      const comment = await commentService.create(issueId, data);
+      const comment = await commentService.create(issueId, {
+        body: data.body,
+        authorId: req.user.id, // ← from the verified token, not the request
+      });
       res.status(201).json(comment);
     } catch (err) {
       next(err);
     }
   },
 
+  // listByIssue and remove stay exactly as they were
   async listByIssue(req: Request, res: Response, next: NextFunction) {
     try {
       const { issueId } = req.params;
