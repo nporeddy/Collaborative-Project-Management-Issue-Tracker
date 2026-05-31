@@ -10,6 +10,7 @@ import Spinner from "../components/Spinner";
 import { useProject } from "../hooks/useProjects";
 import SlideOver from "../components/SlideOver";
 import IssueDetailPanel from "../components/IssueDetailPanel";
+import Board from "../components/Board";
 
 const statusTone = {
   TODO: "todo",
@@ -38,11 +39,17 @@ export default function IssuesPage() {
     issueId?: string;
   }>();
   const navigate = useNavigate();
-  const { data, isLoading, isError } = useIssues(projectId!);
+  const [view, setView] = useState<"list" | "board">("list");
+
+  const { data, isLoading, isError } = useIssues(
+    projectId!,
+    view === "board" ? 200 : 20,
+  );
   const { data: project } = useProject(projectId!);
   const createMutation = useCreateIssue(projectId!);
   const [title, setTitle] = useState("");
 
+  // Fetch a larger page when the board is showing
   const handleCreate = () => {
     if (!title.trim()) return;
     createMutation.mutate({ title }, { onSuccess: () => setTitle("") });
@@ -50,7 +57,6 @@ export default function IssuesPage() {
 
   return (
     <div className="space-y-8">
-      {/* Breadcrumb */}
       {/* Back link */}
       {project ? (
         <Link
@@ -65,7 +71,7 @@ export default function IssuesPage() {
         </span>
       )}
 
-      {/* Header */}
+      {/* Header with view toggle */}
       <div className="flex items-end justify-between">
         <div>
           <h1 className="text-2xl font-semibold text-text">
@@ -85,11 +91,36 @@ export default function IssuesPage() {
             Track work items across the project.
           </p>
         </div>
-        {data && (
-          <span className="text-sm text-text-muted">
-            {data.total} {data.total === 1 ? "issue" : "issues"}
-          </span>
-        )}
+
+        <div className="flex items-center gap-3">
+          {data && (
+            <span className="text-sm text-text-muted">
+              {data.total} {data.total === 1 ? "issue" : "issues"}
+            </span>
+          )}
+          <div className="inline-flex rounded-md border border-border bg-surface p-0.5">
+            <button
+              onClick={() => setView("list")}
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                view === "list"
+                  ? "bg-gray-100 text-text"
+                  : "text-text-muted hover:text-text"
+              }`}
+            >
+              List
+            </button>
+            <button
+              onClick={() => setView("board")}
+              className={`px-3 py-1 text-xs font-medium rounded transition-colors cursor-pointer ${
+                view === "board"
+                  ? "bg-gray-100 text-text"
+                  : "text-text-muted hover:text-text"
+              }`}
+            >
+              Board
+            </button>
+          </div>
+        </div>
       </div>
 
       {/* Create form */}
@@ -110,7 +141,7 @@ export default function IssuesPage() {
         </div>
       </Card>
 
-      {/* List */}
+      {/* List or Board */}
       {isLoading ? (
         <Spinner label="Loading issues…" />
       ) : isError ? (
@@ -121,6 +152,11 @@ export default function IssuesPage() {
         <EmptyState
           title="No issues yet"
           description="Add your first issue above."
+        />
+      ) : view === "board" ? (
+        <Board
+          issues={data.items}
+          onCardClick={(id) => navigate(`/projects/${projectId}/issues/${id}`)}
         />
       ) : (
         <Card className="!p-0 divide-y divide-border">
@@ -148,6 +184,8 @@ export default function IssuesPage() {
           ))}
         </Card>
       )}
+
+      {/* Slide-over panel */}
       <SlideOver
         open={!!issueId}
         onClose={() => navigate(`/projects/${projectId}/issues`)}

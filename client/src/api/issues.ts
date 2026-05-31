@@ -21,8 +21,9 @@ interface IssueListResponse {
 
 export const getIssues = async (
   projectId: string,
+  params?: { page?: number; limit?: number; status?: string },
 ): Promise<IssueListResponse> => {
-  const res = await api.get(`/projects/${projectId}/issues`);
+  const res = await api.get(`/projects/${projectId}/issues`, { params });
   return res.data;
 };
 

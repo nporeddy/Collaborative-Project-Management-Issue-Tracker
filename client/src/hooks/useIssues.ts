@@ -7,14 +7,13 @@ import {
   deleteIssue,
 } from "../api/issues";
 
-export function useIssues(projectId: string) {
+export function useIssues(projectId: string, limit = 20) {
   return useQuery({
-    queryKey: ["issues", projectId],
-    queryFn: () => getIssues(projectId),
+    queryKey: ["issues", projectId, limit],
+    queryFn: () => getIssues(projectId, { limit }),
     enabled: !!projectId,
   });
 }
-
 export function useCreateIssue(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
