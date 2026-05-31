@@ -46,6 +46,10 @@ export default function App() {
                   path="/projects/:projectId/issues"
                   element={<IssuesPage />}
                 />
+                <Route
+                  path="/projects/:projectId/issues/:issueId"
+                  element={<IssuesPage />}
+                />
               </Routes>
             </Layout>
           </ProtectedRoute>

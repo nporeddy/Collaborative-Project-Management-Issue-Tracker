@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import { useIssues, useCreateIssue } from "../hooks/useIssues";
 import Button from "../components/Button";
 import Input from "../components/Input";
@@ -8,6 +8,8 @@ import Badge from "../components/Badge";
 import EmptyState from "../components/EmptyState";
 import Spinner from "../components/Spinner";
 import { useProject } from "../hooks/useProjects";
+import SlideOver from "../components/SlideOver";
+import IssueDetailPanel from "../components/IssueDetailPanel";
 
 const statusTone = {
   TODO: "todo",
@@ -31,7 +33,11 @@ const statusLabel = {
 };
 
 export default function IssuesPage() {
-  const { projectId } = useParams<{ projectId: string }>();
+  const { projectId, issueId } = useParams<{
+    projectId: string;
+    issueId?: string;
+  }>();
+  const navigate = useNavigate();
   const { data, isLoading, isError } = useIssues(projectId!);
   const { data: project } = useProject(projectId!);
   const createMutation = useCreateIssue(projectId!);
@@ -119,9 +125,12 @@ export default function IssuesPage() {
       ) : (
         <Card className="!p-0 divide-y divide-border">
           {data.items.map((issue) => (
-            <div
+            <button
               key={issue.id}
-              className="flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors"
+              onClick={() =>
+                navigate(`/projects/${projectId}/issues/${issue.id}`)
+              }
+              className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left cursor-pointer"
             >
               <Badge tone={statusTone[issue.status]}>
                 {statusLabel[issue.status]}
@@ -135,10 +144,17 @@ export default function IssuesPage() {
               <span className="text-xs text-text-subtle whitespace-nowrap">
                 {new Date(issue.createdAt).toLocaleDateString()}
               </span>
-            </div>
+            </button>
           ))}
         </Card>
       )}
+      <SlideOver
+        open={!!issueId}
+        onClose={() => navigate(`/projects/${projectId}/issues`)}
+        title="Issue"
+      >
+        {issueId && <IssueDetailPanel issueId={issueId} />}
+      </SlideOver>
     </div>
   );
 }
