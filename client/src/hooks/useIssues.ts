@@ -57,3 +57,18 @@ export function useDeleteIssue(projectId: string) {
     },
   });
 }
+
+export function useUpdateAnyIssue(projectId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({
+      id,
+      ...data
+    }: { id: string } & Parameters<typeof updateIssue>[1]) =>
+      updateIssue(id, data),
+    onSuccess: (_data, variables) => {
+      queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
+      queryClient.invalidateQueries({ queryKey: ["issue", variables.id] });
+    },
+  });
+}

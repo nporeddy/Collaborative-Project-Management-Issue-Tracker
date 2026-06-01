@@ -1,6 +1,10 @@
 import { useState } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
-import { useIssues, useCreateIssue } from "../hooks/useIssues";
+import {
+  useIssues,
+  useCreateIssue,
+  useUpdateAnyIssue,
+} from "../hooks/useIssues";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
@@ -48,6 +52,7 @@ export default function IssuesPage() {
   const { data: project } = useProject(projectId!);
   const createMutation = useCreateIssue(projectId!);
   const [title, setTitle] = useState("");
+  const updateMutation = useUpdateAnyIssue(projectId!);
 
   // Fetch a larger page when the board is showing
   const handleCreate = () => {
@@ -157,6 +162,7 @@ export default function IssuesPage() {
         <Board
           issues={data.items}
           onCardClick={(id) => navigate(`/projects/${projectId}/issues/${id}`)}
+          onStatusChange={(id, status) => updateMutation.mutate({ id, status })}
         />
       ) : (
         <Card className="!p-0 divide-y divide-border">

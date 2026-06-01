@@ -1,3 +1,4 @@
+import { useDroppable } from "@dnd-kit/core";
 import type { Issue } from "../api/issues";
 import IssueCard from "./IssueCard";
 
@@ -21,10 +22,15 @@ export default function BoardColumn({
   issues,
   onCardClick,
 }: Props) {
+  const { setNodeRef, isOver } = useDroppable({ id: status });
+
   return (
-    <div className="flex flex-col bg-gray-50 border border-border rounded-lg flex-1 min-w-0 h-full">
-      {" "}
-      {/* Header */}
+    <div
+      ref={setNodeRef}
+      className={`flex flex-col border rounded-lg flex-1 min-w-0 h-full transition-colors ${
+        isOver ? "border-primary bg-primary/5" : "border-border bg-gray-50"
+      }`}
+    >
       <div className="px-3 py-3 flex items-center gap-2 border-b border-border">
         <span className={`w-2 h-2 rounded-full ${statusAccent[status]}`} />
         <h3 className="text-xs font-semibold text-text uppercase tracking-wide">
@@ -32,8 +38,8 @@ export default function BoardColumn({
         </h3>
         <span className="ml-auto text-xs text-text-muted">{issues.length}</span>
       </div>
-      {/* Cards */}
-      <div className="flex-1 overflow-auto p-2 space-y-2 min-h-0">
+
+      <div className="flex-1 overflow-y-auto p-2 space-y-2 min-h-0">
         {issues.length === 0 ? (
           <div className="h-full flex items-center justify-center text-xs text-text-subtle">
             No issues
