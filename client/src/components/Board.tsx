@@ -1,15 +1,17 @@
-import { useMemo } from "react";
+import { useState, useMemo } from "react";
 import {
   DndContext,
+  DragOverlay,
   PointerSensor,
   KeyboardSensor,
   useSensor,
   useSensors,
   closestCorners,
 } from "@dnd-kit/core";
-import type { DragEndEvent } from "@dnd-kit/core";
+import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import type { Issue } from "../api/issues";
 import BoardColumn from "./BoardColumn";
+import IssueCard from "./IssueCard";
 
 interface Props {
   issues: Issue[];
@@ -32,6 +34,8 @@ const validStatuses: ReadonlySet<Issue["status"]> = new Set([
 ]);
 
 export default function Board({ issues, onCardClick, onStatusChange }: Props) {
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+
   const grouped = useMemo(() => {
     const map: Record<Issue["status"], Issue[]> = {
       TODO: [],
@@ -43,22 +47,28 @@ export default function Board({ issues, onCardClick, onStatusChange }: Props) {
     return map;
   }, [issues]);
 
-  // Sensors: pointer (mouse/touch) and keyboard (accessibility)
+  const draggingIssue = useMemo(
+    () =>
+      draggingId ? (issues.find((i) => i.id === draggingId) ?? null) : null,
+    [draggingId, issues],
+  );
+
   const sensors = useSensors(
-    useSensor(PointerSensor, {
-      // Require a tiny drag distance so clicks still register as clicks
-      activationConstraint: { distance: 5 },
-    }),
+    useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
     useSensor(KeyboardSensor),
   );
 
+  function handleDragStart(event: DragStartEvent) {
+    setDraggingId(String(event.active.id));
+  }
+
   function handleDragEnd(event: DragEndEvent) {
+    setDraggingId(null);
     const { active, over } = event;
     if (!over) return;
 
     const issueId = String(active.id);
     const targetStatus = String(over.id) as Issue["status"];
-
     if (!validStatuses.has(targetStatus)) return;
 
     const issue = issues.find((i) => i.id === issueId);
@@ -67,11 +77,17 @@ export default function Board({ issues, onCardClick, onStatusChange }: Props) {
     onStatusChange(issueId, targetStatus);
   }
 
+  function handleDragCancel() {
+    setDraggingId(null);
+  }
+
   return (
     <DndContext
       sensors={sensors}
       collisionDetection={closestCorners}
+      onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <div
         className="flex gap-4 pb-2 min-h-[500px]"
@@ -87,6 +103,15 @@ export default function Board({ issues, onCardClick, onStatusChange }: Props) {
           />
         ))}
       </div>
+
+      {/* The floating "ghost" card that follows the cursor */}
+      <DragOverlay>
+        {draggingIssue ? (
+          <div className="shadow-lg cursor-grabbing">
+            <IssueCard issue={draggingIssue} onClick={() => {}} />
+          </div>
+        ) : null}
+      </DragOverlay>
     </DndContext>
   );
 }

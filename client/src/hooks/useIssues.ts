@@ -6,6 +6,7 @@ import {
   updateIssue,
   deleteIssue,
 } from "../api/issues";
+import type { IssueListResponse } from "../api/issues";
 
 export function useIssues(projectId: string, limit = 20) {
   return useQuery({
@@ -60,13 +61,53 @@ export function useDeleteIssue(projectId: string) {
 
 export function useUpdateAnyIssue(projectId: string) {
   const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({
       id,
       ...data
     }: { id: string } & Parameters<typeof updateIssue>[1]) =>
       updateIssue(id, data),
-    onSuccess: (_data, variables) => {
+
+    // Run BEFORE the mutation fires — this is the optimistic part
+    onMutate: async ({ id, ...changes }) => {
+      // Cancel any in-flight refetches so they don't overwrite our optimistic update
+      await queryClient.cancelQueries({ queryKey: ["issues", projectId] });
+
+      // Snapshot the previous state so we can roll back on error
+      const snapshots: Array<
+        [readonly unknown[], IssueListResponse | undefined]
+      > = [];
+      const queries = queryClient.getQueriesData<IssueListResponse>({
+        queryKey: ["issues", projectId],
+      });
+
+      for (const [key, value] of queries) {
+        snapshots.push([key, value]);
+        if (!value) continue;
+
+        // Optimistically write the updated issue into the cache
+        queryClient.setQueryData<IssueListResponse>(key, {
+          ...value,
+          items: value.items.map((issue) =>
+            issue.id === id ? { ...issue, ...changes } : issue,
+          ),
+        });
+      }
+
+      return { snapshots };
+    },
+
+    // On failure, restore everything from the snapshot
+    onError: (_err, _vars, context) => {
+      if (!context?.snapshots) return;
+      for (const [key, value] of context.snapshots) {
+        queryClient.setQueryData(key, value);
+      }
+    },
+
+    // After success or failure, refetch from the server to be fully in sync
+    onSettled: (_data, _err, variables) => {
       queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
       queryClient.invalidateQueries({ queryKey: ["issue", variables.id] });
     },

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import {
   useIssues,
@@ -42,8 +42,15 @@ export default function IssuesPage() {
     projectId: string;
     issueId?: string;
   }>();
-  const navigate = useNavigate();
-  const [view, setView] = useState<"list" | "board">("list");
+  const navigate = useNavigate();const [view, setView] = useState<'list' | 'board'>(() => {
+  const saved = localStorage.getItem('issuesView');
+  return saved === 'board' ? 'board' : 'list';
+});
+
+// Persist on change
+useEffect(() => {
+  localStorage.setItem('issuesView', view);
+}, [view]);
 
   const { data, isLoading, isError } = useIssues(
     projectId!,

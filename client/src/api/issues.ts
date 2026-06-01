@@ -7,11 +7,11 @@ export interface Issue {
   status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
   projectId: string;
-  assigneeId?: string;
+  assigneeId?: string | null;
   createdAt: string;
 }
 
-interface IssueListResponse {
+export interface IssueListResponse {
   items: Issue[];
   total: number;
   page: number;

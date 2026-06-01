@@ -21,9 +21,11 @@ export default function IssueCard({ issue, onClick }: Props) {
     });
 
   const style = {
-    transform: CSS.Translate.toString(transform),
-    opacity: isDragging ? 0.4 : 1,
-  };
+  transform: CSS.Translate.toString(transform),
+  opacity: isDragging ? 0.3 : 1,
+  // Don't actually move the original — the overlay handles visual movement
+  ...(isDragging ? { transform: 'none' } : {}),
+};
 
   return (
     <button
