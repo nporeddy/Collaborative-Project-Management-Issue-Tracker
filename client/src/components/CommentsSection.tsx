@@ -45,7 +45,6 @@ export default function CommentsSection({ issueId }: Props) {
         )}
       </p>
 
-      {/* Existing comments */}
       {isLoading ? (
         <Spinner label="Loading comments…" />
       ) : !comments || comments.length === 0 ? (
@@ -88,7 +87,6 @@ export default function CommentsSection({ issueId }: Props) {
         </ul>
       )}
 
-      {/* New comment form */}
       <div className="pt-4 border-t border-border">
         <textarea
           ref={textareaRef}

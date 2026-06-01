@@ -64,7 +64,6 @@ export default function IssueDetailPanel({ issueId }: Props) {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Title — uncontrolled input with `key` to reset when issue changes */}
       <input
         key={`title-${issue.id}`}
         ref={titleRef}
@@ -74,7 +73,6 @@ export default function IssueDetailPanel({ issueId }: Props) {
         placeholder="Issue title"
       />
 
-      {/* Status + Priority */}
       <div className="grid grid-cols-2 gap-4">
         <div>
           <label className="block text-xs font-medium text-text-muted mb-1">
@@ -119,7 +117,6 @@ export default function IssueDetailPanel({ issueId }: Props) {
         </div>
       </div>
 
-      {/* Description */}
       <div>
         <label className="block text-xs font-medium text-text-muted mb-1">
           Description
@@ -135,7 +132,6 @@ export default function IssueDetailPanel({ issueId }: Props) {
         />
       </div>
 
-      {/* Metadata */}
       <div className="text-xs text-text-muted space-y-1 pt-4 border-t border-border">
         <p>
           Status: <Badge tone={statusTone[issue.status]}>{issue.status}</Badge>

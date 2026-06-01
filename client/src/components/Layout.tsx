@@ -37,7 +37,6 @@ export default function Layout({ children }: { children: ReactNode }) {
           </Link>
         </nav>
 
-        {/* User block */}
         {user && (
           <div className="px-3 py-3 border-t border-border">
             <div className="flex items-center gap-3 px-3 py-2">
@@ -61,7 +60,6 @@ export default function Layout({ children }: { children: ReactNode }) {
         )}
       </aside>
 
-      {/* Main */}
       <main className="flex-1 overflow-auto">
         <div className="max-w-5xl mx-auto px-8 py-10">{children}</div>
       </main>

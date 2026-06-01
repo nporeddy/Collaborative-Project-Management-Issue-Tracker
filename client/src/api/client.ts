@@ -14,8 +14,6 @@ export function setAuthToken(token: string | null) {
   }
 }
 
-// Callback that AuthContext will register so we can update the in-memory token
-// when the interceptor silently refreshes it.
 let onTokenRefreshed: ((token: string) => void) | null = null;
 let onAuthFailure: (() => void) | null = null;
 
@@ -27,8 +25,6 @@ export function registerAuthCallbacks(opts: {
   onAuthFailure = opts.onAuthFailure;
 }
 
-// Tracks a single in-flight refresh so multiple parallel 401s don't trigger
-// multiple refresh calls.
 let refreshPromise: Promise<string> | null = null;
 
 async function refreshAccessToken(): Promise<string> {
@@ -54,12 +50,10 @@ api.interceptors.response.use(
       _retry?: boolean;
     };
 
-    // Only handle 401s
     if (error.response?.status !== 401 || !original || original._retry) {
       return Promise.reject(error);
     }
 
-    // Don't try to refresh on auth endpoints themselves — that would loop
     if (
       original.url?.includes("/auth/refresh") ||
       original.url?.includes("/auth/login")
@@ -74,11 +68,9 @@ api.interceptors.response.use(
       setAuthToken(newToken);
       onTokenRefreshed?.(newToken);
 
-      // Retry the original request with the new token
       original.headers.Authorization = `Bearer ${newToken}`;
       return api(original);
     } catch (refreshErr) {
-      // Refresh failed → session is truly dead
       onAuthFailure?.();
       return Promise.reject(refreshErr);
     }

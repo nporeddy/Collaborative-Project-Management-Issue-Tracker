@@ -17,23 +17,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-    // Register interceptor callbacks once
   useEffect(() => {
     registerAuthCallbacks({
       onTokenRefreshed: (_token) => {
-        // The interceptor already called setAuthToken; this is for any
-        // additional bookkeeping. Currently a no-op, but the hook is here
-        // if we ever store the token in state.
       },
       onAuthFailure: () => {
-        // Refresh failed → user must log in again
         setAuthToken(null);
         setUser(null);
       },
     });
   }, []);
 
-  // On app boot: try to silently restore session via refresh cookie
   useEffect(() => {
     let cancelled = false;
 
@@ -44,7 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const me = await authApi.me();
         if (!cancelled) setUser(me);
       } catch {
-        // No valid refresh cookie → user is not logged in. That's fine.
+        // No valid refresh cookie → user is not logged in..
       } finally {
         if (!cancelled) setIsLoading(false);
       }

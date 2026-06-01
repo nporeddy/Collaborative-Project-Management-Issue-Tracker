@@ -11,7 +11,6 @@ import IssuesPage from "./pages/IssuesPage";
 export default function App() {
   return (
     <Routes>
-      {/* Public auth routes — bounce to /workspaces if already logged in */}
       <Route
         path="/login"
         element={
@@ -29,7 +28,6 @@ export default function App() {
         }
       />
 
-      {/* Everything below requires login */}
       <Route
         path="/*"
         element={

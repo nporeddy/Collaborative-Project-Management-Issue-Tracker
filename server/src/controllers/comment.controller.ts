@@ -4,7 +4,6 @@ import { commentService } from "../services/comment.service.js";
 
 const createSchema = z.object({
   body: z.string().min(1).max(5000),
-  // ← removed: authorId. Comes from req.user now, not the request body.
 });
 
 export const commentController = {
@@ -19,7 +18,7 @@ export const commentController = {
       const data = createSchema.parse(req.body);
       const comment = await commentService.create(issueId, {
         body: data.body,
-        authorId: req.user.id, // ← from the verified token, not the request
+        authorId: req.user.id, 
       });
       res.status(201).json(comment);
     } catch (err) {
@@ -27,7 +26,6 @@ export const commentController = {
     }
   },
 
-  // listByIssue and remove stay exactly as they were
   async listByIssue(req: Request, res: Response, next: NextFunction) {
     try {
       const { issueId } = req.params;

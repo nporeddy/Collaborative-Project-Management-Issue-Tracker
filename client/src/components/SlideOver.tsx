@@ -19,7 +19,6 @@ export default function SlideOver({ open, onClose, children, title }: Props) {
     return () => window.removeEventListener("keydown", handleKey);
   }, [open, onClose]);
 
-  // Lock body scroll while open
   useEffect(() => {
     if (open) {
       const original = document.body.style.overflow;
@@ -34,14 +33,12 @@ export default function SlideOver({ open, onClose, children, title }: Props) {
 
   return (
     <div className="fixed inset-0 z-50 flex">
-      {/* Backdrop */}
       <div
         className="flex-1 bg-black/30 transition-opacity"
         onClick={onClose}
         aria-hidden="true"
       />
 
-      {/* Panel */}
       <aside
         className="w-full max-w-xl bg-surface border-l border-border shadow-xl flex flex-col"
         role="dialog"

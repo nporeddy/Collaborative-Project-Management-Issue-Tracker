@@ -10,7 +10,6 @@ export function useCreateWorkspace() {
   return useMutation({
     mutationFn: createWorkspace,
     onSuccess: () => {
-      // refetch the list automatically after creating
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
     },
   });

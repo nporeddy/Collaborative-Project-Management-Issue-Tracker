@@ -104,7 +104,6 @@ export default function Board({ issues, onCardClick, onStatusChange }: Props) {
         ))}
       </div>
 
-      {/* The floating "ghost" card that follows the cursor */}
       <DragOverlay>
         {draggingIssue ? (
           <div className="shadow-lg cursor-grabbing">

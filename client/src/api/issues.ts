@@ -35,7 +35,6 @@ export const createIssue = async (
   return res.data;
 };
 
-// Add to issues.ts (alongside existing exports)
 
 export interface IssueDetail extends Issue {
   description?: string;
