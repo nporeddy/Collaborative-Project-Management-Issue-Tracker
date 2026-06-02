@@ -15,6 +15,7 @@ import { useProject } from "../hooks/useProjects";
 import SlideOver from "../components/SlideOver";
 import IssueDetailPanel from "../components/IssueDetailPanel";
 import Board from "../components/Board";
+import { useProjectRoom } from "../hooks/useProjectRoom";
 
 const statusTone = {
   TODO: "todo",
@@ -42,15 +43,17 @@ export default function IssuesPage() {
     projectId: string;
     issueId?: string;
   }>();
-  const navigate = useNavigate();const [view, setView] = useState<'list' | 'board'>(() => {
-  const saved = localStorage.getItem('issuesView');
-  return saved === 'board' ? 'board' : 'list';
-});
+  const navigate = useNavigate();
+  const [view, setView] = useState<"list" | "board">(() => {
+    const saved = localStorage.getItem("issuesView");
+    return saved === "board" ? "board" : "list";
+  });
+  useProjectRoom(projectId); // ← ADD this line
 
-// Persist on change
-useEffect(() => {
-  localStorage.setItem('issuesView', view);
-}, [view]);
+  // Persist on change
+  useEffect(() => {
+    localStorage.setItem("issuesView", view);
+  }, [view]);
 
   const { data, isLoading, isError } = useIssues(
     projectId!,

@@ -68,15 +68,27 @@ io.use((socket, next) => {
   }
 });
 
-io.on("connection", (socket) => {
+io.on('connection', (socket) => {
   console.log(`Socket connected: ${socket.id} (user ${socket.data.userId})`);
 
-  socket.on("ping", (msg) => {
+  socket.on('ping', (msg) => {
     console.log(`Ping from ${socket.data.userId}:`, msg);
-    socket.emit("pong", { echo: msg, serverTime: Date.now() });
+    socket.emit('pong', { echo: msg, serverTime: Date.now() });
   });
 
-  socket.on("disconnect", (reason) => {
+  socket.on('project:join', (projectId: string) => {
+    if (typeof projectId !== 'string' || !projectId) return;
+    socket.join(`project:${projectId}`);
+    console.log(`User ${socket.data.userId} joined project:${projectId}`);
+  });
+
+  socket.on('project:leave', (projectId: string) => {
+    if (typeof projectId !== 'string' || !projectId) return;
+    socket.leave(`project:${projectId}`);
+    console.log(`User ${socket.data.userId} left project:${projectId}`);
+  });
+
+  socket.on('disconnect', (reason) => {
     console.log(`Socket disconnected: ${socket.id} (${reason})`);
   });
 });
