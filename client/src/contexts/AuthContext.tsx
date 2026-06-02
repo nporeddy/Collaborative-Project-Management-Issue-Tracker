@@ -1,8 +1,8 @@
-import { createContext, useContext, useEffect, useState } from 'react';
-import type { ReactNode } from 'react';
-import { authApi, type AuthUser } from '../api/auth';
-import { setAuthToken ,registerAuthCallbacks } from '../api/client';
-
+import { createContext, useContext, useEffect, useState } from "react";
+import type { ReactNode } from "react";
+import { authApi, type AuthUser } from "../api/auth";
+import { setAuthToken, registerAuthCallbacks } from "../api/client";
+import { connectSocket, disconnectSocket } from "../lib/socket";
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
@@ -19,8 +19,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     registerAuthCallbacks({
-      onTokenRefreshed: (_token) => {
-      },
+      onTokenRefreshed: (_token) => {},
       onAuthFailure: () => {
         setAuthToken(null);
         setUser(null);
@@ -36,7 +35,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         const { accessToken } = await authApi.refresh();
         setAuthToken(accessToken);
         const me = await authApi.me();
-        if (!cancelled) setUser(me);
+        if (!cancelled) {
+          setUser(me);
+          connectSocket(accessToken);
+        }
       } catch {
         // No valid refresh cookie → user is not logged in..
       } finally {
@@ -45,13 +47,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
 
     restoreSession();
-    return () => { cancelled = true; };
+    return () => {
+      cancelled = true;
+    };
   }, []);
 
   async function login(email: string, password: string) {
     const result = await authApi.login({ email, password });
     setAuthToken(result.accessToken);
     setUser(result.user);
+    connectSocket(result.accessToken);
   }
 
   async function register(email: string, password: string, name: string) {
@@ -64,6 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await authApi.logout();
     } finally {
+      disconnectSocket();
       setAuthToken(null);
       setUser(null);
     }
@@ -78,6 +84,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error('useAuth must be used inside AuthProvider');
+  if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }

@@ -2,7 +2,9 @@ import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-
+import { createServer } from "http";
+import { Server as SocketIOServer } from "socket.io";
+import { tokenService } from "./lib/jwt.js";
 import { authMiddleware } from "./middleware/authMiddleware.js";
 import { errorHandler } from "./middleware/errorHandler.js";
 
@@ -42,6 +44,43 @@ app.use("/api/comments", authMiddleware, commentFlatRoutes);
 app.use(errorHandler);
 
 const PORT = 4000;
-app.listen(PORT, () =>
+const httpServer = createServer(app);
+
+const io = new SocketIOServer(httpServer, {
+  cors: {
+    origin: "http://localhost:5173",
+    credentials: true,
+  },
+});
+
+// Authenticate every connecting socket
+io.use((socket, next) => {
+  const token = socket.handshake.auth?.token;
+  if (typeof token !== "string") {
+    return next(new Error("No token provided"));
+  }
+  try {
+    const payload = tokenService.verifyAccessToken(token);
+    socket.data.userId = payload.userId;
+    next();
+  } catch {
+    next(new Error("Invalid or expired token"));
+  }
+});
+
+io.on("connection", (socket) => {
+  console.log(`Socket connected: ${socket.id} (user ${socket.data.userId})`);
+
+  socket.on("ping", (msg) => {
+    console.log(`Ping from ${socket.data.userId}:`, msg);
+    socket.emit("pong", { echo: msg, serverTime: Date.now() });
+  });
+
+  socket.on("disconnect", (reason) => {
+    console.log(`Socket disconnected: ${socket.id} (${reason})`);
+  });
+});
+
+httpServer.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`),
 );
