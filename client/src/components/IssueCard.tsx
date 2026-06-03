@@ -14,6 +14,12 @@ const priorityDot = {
   URGENT: "bg-red-500",
 } as const;
 
+const typeIndicator = {
+  STORY: { label: "S", cls: "bg-indigo-100 text-indigo-700" },
+  BUG: { label: "B", cls: "bg-red-100 text-red-700" },
+  TASK: { label: "T", cls: "bg-slate-100 text-slate-600" },
+} as const;
+
 export default function IssueCard({ issue, onClick }: Props) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
@@ -21,10 +27,12 @@ export default function IssueCard({ issue, onClick }: Props) {
     });
 
   const style = {
-  transform: CSS.Translate.toString(transform),
-  opacity: isDragging ? 0.3 : 1,
-  ...(isDragging ? { transform: 'none' } : {}),
-};
+    transform: CSS.Translate.toString(transform),
+    opacity: isDragging ? 0.3 : 1,
+    ...(isDragging ? { transform: "none" } : {}),
+  };
+
+  const type = typeIndicator[issue.type] ?? typeIndicator.TASK;
 
   return (
     <button
@@ -35,10 +43,18 @@ export default function IssueCard({ issue, onClick }: Props) {
       onClick={onClick}
       className="w-full text-left bg-surface border border-border rounded-md px-3 py-2 hover:border-border-strong hover:shadow-sm transition-shadow cursor-grab active:cursor-grabbing"
     >
-      <p className="text-sm text-text leading-snug line-clamp-2">
-        {issue.title}
-      </p>
-      <div className="mt-1.5 flex items-center gap-2">
+      <div className="flex items-start gap-2">
+        <span
+          className={`shrink-0 w-5 h-5 rounded text-[10px] font-bold flex items-center justify-center ${type.cls}`}
+          title={`Type: ${issue.type}`}
+        >
+          {type.label}
+        </span>
+        <p className="text-sm text-text leading-snug line-clamp-2 flex-1">
+          {issue.title}
+        </p>
+      </div>
+      <div className="mt-1.5 ml-7 flex items-center gap-2">
         <span
           className={`w-1.5 h-1.5 rounded-full ${priorityDot[issue.priority]}`}
           title={`Priority: ${issue.priority}`}

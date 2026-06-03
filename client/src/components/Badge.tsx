@@ -9,7 +9,9 @@ type Tone =
   | "low"
   | "medium"
   | "high"
-  | "urgent";
+  | "urgent"
+  | "story"
+  | "bug" | "task";
 
 const toneClasses: Record<Tone, string> = {
   default: "bg-gray-100 text-gray-700",
@@ -21,6 +23,9 @@ const toneClasses: Record<Tone, string> = {
   medium: "bg-blue-100 text-blue-700",
   high: "bg-amber-100 text-amber-700",
   urgent: "bg-red-100 text-red-700",
+  story: 'bg-indigo-100 text-indigo-700',         
+  bug: 'bg-red-100 text-red-700',              
+  task: 'bg-slate-100 text-slate-700',  
 };
 
 export default function Badge({

@@ -30,12 +30,11 @@ export const getIssues = async (
 
 export const createIssue = async (
   projectId: string,
-  data: { title: string; priority?: string },
+  data: { title: string; priority?: string; type?: 'STORY' | 'BUG' | 'TASK' }
 ): Promise<Issue> => {
   const res = await api.post(`/projects/${projectId}/issues`, data);
   return res.data;
 };
-
 
 export interface IssueDetail extends Issue {
   description?: string;
@@ -62,6 +61,7 @@ export const updateIssue = async (
     description: string;
     status: Issue["status"];
     priority: Issue["priority"];
+    type: Issue['type']; 
     assigneeId: string | null;
   }>,
 ): Promise<Issue> => {

@@ -25,6 +25,12 @@ const statusTone = {
   DONE: "done",
 } as const;
 
+const typeOptions = [
+  { value: "STORY", label: "Story" },
+  { value: "BUG", label: "Bug" },
+  { value: "TASK", label: "Task" },
+] as const;
+
 interface Props {
   issueId: string;
 }
@@ -73,7 +79,28 @@ export default function IssueDetailPanel({ issueId }: Props) {
         placeholder="Issue title"
       />
 
-      <div className="grid grid-cols-2 gap-4">
+      <div className="grid grid-cols-3 gap-4">
+        <div>
+          <label className="block text-xs font-medium text-text-muted mb-1">
+            Type
+          </label>
+          <select
+            value={issue.type}
+            onChange={(e) =>
+              updateMutation.mutate({
+                type: e.target.value as typeof issue.type,
+              })
+            }
+            className="w-full text-sm px-3 py-2 border border-border rounded-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            {typeOptions.map((opt) => (
+              <option key={opt.value} value={opt.value}>
+                {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+
         <div>
           <label className="block text-xs font-medium text-text-muted mb-1">
             Status

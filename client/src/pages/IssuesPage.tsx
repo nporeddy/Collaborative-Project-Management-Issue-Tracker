@@ -20,7 +20,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocketEvent } from "../hooks/useSocketEvent";
 import type { Issue, IssueListResponse } from "../api/issues";
-import { getSocket } from '../lib/socket';
+import { getSocket } from "../lib/socket";
 const statusTone = {
   TODO: "todo",
   IN_PROGRESS: "progress",
@@ -42,6 +42,17 @@ const statusLabel = {
   DONE: "Done",
 };
 
+const typeTone = {
+  STORY: "story",
+  BUG: "bug",
+  TASK: "task",
+} as const;
+
+const typeLabel = {
+  STORY: "Story",
+  BUG: "Bug",
+  TASK: "Task",
+};
 export default function IssuesPage() {
   const { projectId, issueId } = useParams<{
     projectId: string;
@@ -87,20 +98,20 @@ export default function IssuesPage() {
   }, [view]);
 
   // Add near your other hooks
-useEffect(() => {
-  const socket = getSocket();
-  if (!socket) return;
+  useEffect(() => {
+    const socket = getSocket();
+    if (!socket) return;
 
-  const handleReconnect = () => {
-    // Refetch all caches we care about for this view
-    queryClient.invalidateQueries({ queryKey: ['issues', projectId] });
-  };
+    const handleReconnect = () => {
+      // Refetch all caches we care about for this view
+      queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
+    };
 
-  socket.on('connect', handleReconnect);
-  return () => {
-    socket.off('connect', handleReconnect);
-  };
-}, [queryClient, projectId]);
+    socket.on("connect", handleReconnect);
+    return () => {
+      socket.off("connect", handleReconnect);
+    };
+  }, [queryClient, projectId]);
 
   const { data, isLoading, isError } = useIssues(
     projectId!,
@@ -109,12 +120,23 @@ useEffect(() => {
   const { data: project } = useProject(projectId!);
   const createMutation = useCreateIssue(projectId!);
   const [title, setTitle] = useState("");
+  const [newIssueType, setNewIssueType] = useState<"STORY" | "BUG" | "TASK">(
+    "TASK",
+  );
   const updateMutation = useUpdateAnyIssue(projectId!);
 
   // Fetch a larger page when the board is showing
   const handleCreate = () => {
     if (!title.trim()) return;
-    createMutation.mutate({ title }, { onSuccess: () => setTitle("") });
+    createMutation.mutate(
+      { title, type: newIssueType },
+      {
+        onSuccess: () => {
+          setTitle("");
+          setNewIssueType("TASK"); // reset to default
+        },
+      },
+    );
   };
 
   return (
@@ -194,6 +216,17 @@ useEffect(() => {
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             placeholder="What needs to be done?"
           />
+          <select
+            value={newIssueType}
+            onChange={(e) =>
+              setNewIssueType(e.target.value as "STORY" | "BUG" | "TASK")
+            }
+            className="text-sm px-3 py-2 border border-border rounded-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="TASK">Task</option>
+            <option value="STORY">Story</option>
+            <option value="BUG">Bug</option>
+          </select>
           <Button
             onClick={handleCreate}
             disabled={createMutation.isPending || !title.trim()}
@@ -231,6 +264,7 @@ useEffect(() => {
               }
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left cursor-pointer"
             >
+              <Badge tone={typeTone[issue.type]}>{typeLabel[issue.type]}</Badge>
               <Badge tone={statusTone[issue.status]}>
                 {statusLabel[issue.status]}
               </Badge>

@@ -18,10 +18,10 @@ export function useIssues(projectId: string, limit = 20) {
 export function useCreateIssue(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title: string; priority?: string }) =>
+    mutationFn: (data: { title: string; priority?: string; type?: 'STORY' | 'BUG' | 'TASK' }) =>
       createIssue(projectId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
+      queryClient.invalidateQueries({ queryKey: ['issues', projectId] });
     },
   });
 }
