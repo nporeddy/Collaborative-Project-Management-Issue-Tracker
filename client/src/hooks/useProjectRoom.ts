@@ -7,9 +7,18 @@ export function useProjectRoom(projectId: string | undefined) {
     const socket = getSocket();
     if (!socket) return;
 
-    socket.emit("project:join", projectId);
+    const join = () => socket.emit("project:join", projectId);
+
+    // Join immediately if already connected
+    if (socket.connected) {
+      join();
+    }
+
+    // Re-join on every (re)connect
+    socket.on("connect", join);
 
     return () => {
+      socket.off("connect", join);
       socket.emit("project:leave", projectId);
     };
   }, [projectId]);

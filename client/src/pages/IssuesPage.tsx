@@ -20,7 +20,7 @@ import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocketEvent } from "../hooks/useSocketEvent";
 import type { Issue, IssueListResponse } from "../api/issues";
-
+import { getSocket } from '../lib/socket';
 const statusTone = {
   TODO: "todo",
   IN_PROGRESS: "progress",
@@ -85,6 +85,22 @@ export default function IssuesPage() {
   useEffect(() => {
     localStorage.setItem("issuesView", view);
   }, [view]);
+
+  // Add near your other hooks
+useEffect(() => {
+  const socket = getSocket();
+  if (!socket) return;
+
+  const handleReconnect = () => {
+    // Refetch all caches we care about for this view
+    queryClient.invalidateQueries({ queryKey: ['issues', projectId] });
+  };
+
+  socket.on('connect', handleReconnect);
+  return () => {
+    socket.off('connect', handleReconnect);
+  };
+}, [queryClient, projectId]);
 
   const { data, isLoading, isError } = useIssues(
     projectId!,

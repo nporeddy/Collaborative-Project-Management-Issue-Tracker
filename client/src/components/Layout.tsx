@@ -6,7 +6,7 @@ import { getSocket } from "../lib/socket";
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, logout } = useAuth();
+  const { user, logout, socketConnected } = useAuth();
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -41,8 +41,14 @@ export default function Layout({ children }: { children: ReactNode }) {
         {user && (
           <div className="px-3 py-3 border-t border-border">
             <div className="flex items-center gap-3 px-3 py-2">
-              <span className="w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center shrink-0">
+              <span className="w-8 h-8 rounded-full bg-primary text-white text-sm font-semibold flex items-center justify-center shrink-0 relative">
                 {initial}
+                <span
+                  className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-surface ${
+                    socketConnected ? "bg-success" : "bg-text-subtle"
+                  }`}
+                  title={socketConnected ? "Connected" : "Reconnecting…"}
+                />
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm font-medium text-text truncate">

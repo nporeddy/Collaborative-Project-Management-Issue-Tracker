@@ -1,12 +1,14 @@
 import { io, Socket } from "socket.io-client";
 
 let socket: Socket | null = null;
+let getTokenFn: (() => Promise<string | null>) | null = null;
+
+export function registerTokenGetter(fn: () => Promise<string | null>) {
+  getTokenFn = fn;
+}
 
 export function connectSocket(token: string): Socket {
-  // Reuse existing socket if it's still good
   if (socket?.connected) return socket;
-
-  // Tear down any half-dead socket first
   if (socket) {
     socket.removeAllListeners();
     socket.disconnect();
@@ -15,7 +17,19 @@ export function connectSocket(token: string): Socket {
   socket = io("http://localhost:4000", {
     auth: { token },
     autoConnect: true,
-    transports: ["websocket", "polling"], // prefer ws, fall back to polling
+    transports: ["websocket", "polling"],
+  });
+
+  // Handle auth failures during reconnect
+  socket.on("connect_error", async (err) => {
+    if (err.message.includes("token") || err.message.includes("auth")) {
+      if (!getTokenFn || !socket) return;
+      const fresh = await getTokenFn();
+      if (fresh) {
+        socket.auth = { token: fresh };
+        socket.connect();
+      }
+    }
   });
 
   return socket;
