@@ -5,15 +5,16 @@ import { workspaceService } from "../services/workspace.service.js";
 const createSchema = z.object({ name: z.string().min(1).max(100) });
 
 export const workspaceController = {
-  async create(req: Request, res: Response, next: NextFunction) {
-    try {
-      const data = createSchema.parse(req.body);
-      const workspace = await workspaceService.create(data);
-      res.status(201).json(workspace);
-    } catch (err) {
-      next(err);
-    }
-  },
+async create(req: Request, res: Response, next: NextFunction) {
+  try {
+    if (!req.user) return res.status(401).json({ error: 'Not authenticated' });
+    const data = createSchema.parse(req.body);
+    const workspace = await workspaceService.create(req.user.id, data);
+    res.status(201).json(workspace);
+  } catch (err) {
+    next(err);
+  }
+},
 
   async findAll(_req: Request, res: Response, next: NextFunction) {
     try {

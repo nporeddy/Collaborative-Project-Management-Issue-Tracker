@@ -4,12 +4,12 @@ import { issueService } from "../services/issue.service.js";
 
 const statusEnum = z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]);
 const priorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
-const typeEnum = z.enum(['STORY', 'BUG', 'TASK']);
+const typeEnum = z.enum(["STORY", "BUG", "TASK"]);
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
   priority: priorityEnum.optional(),
-  type: typeEnum.optional(),        
+  type: typeEnum.optional(),
   assigneeId: z.string().optional(),
 });
 
@@ -32,6 +32,16 @@ export const issueController = {
       const issue = await issueService.create(projectId, data);
       res.status(201).json(issue);
     } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === "ASSIGNEE_NOT_MEMBER") {
+          return res
+            .status(400)
+            .json({ error: "Assignee is not a member of this workspace" });
+        }
+        if (err.message === "ISSUE_NOT_FOUND") {
+          return res.status(404).json({ error: "Issue not found" });
+        }
+      }
       next(err);
     }
   },
@@ -87,6 +97,16 @@ export const issueController = {
       const issue = await issueService.update(id, data);
       res.json(issue);
     } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === "ASSIGNEE_NOT_MEMBER") {
+          return res
+            .status(400)
+            .json({ error: "Assignee is not a member of this workspace" });
+        }
+        if (err.message === "ISSUE_NOT_FOUND") {
+          return res.status(404).json({ error: "Issue not found" });
+        }
+      }
       next(err);
     }
   },

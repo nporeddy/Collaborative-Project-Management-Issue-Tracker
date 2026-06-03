@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma.js";
-import type { Status, Priority, IssueType  } from "@prisma/client";
+import type { Status, Priority, IssueType } from "@prisma/client";
 import { emitToProject } from "../lib/realtime.js";
+import { memberService } from "./member.service.js";
+
 interface ListParams {
   projectId: string;
   status?: Status;
@@ -10,16 +12,30 @@ interface ListParams {
 }
 
 export const issueService = {
-  create: (
+  async create(
     projectId: string,
     data: {
       title: string;
       description?: string;
       priority?: Priority;
-      type?: IssueType
+      type?: IssueType;
       assigneeId?: string;
     },
-  ) => prisma.issue.create({ data: { ...data, projectId } }),
+  ) {
+    if (data.assigneeId) {
+      const project = await prisma.project.findUnique({
+        where: { id: projectId },
+        select: { workspaceId: true },
+      });
+      if (!project) throw new Error("PROJECT_NOT_FOUND");
+      const isMember = await memberService.isMember(
+        data.assigneeId,
+        project.workspaceId,
+      );
+      if (!isMember) throw new Error("ASSIGNEE_NOT_MEMBER");
+    }
+    return prisma.issue.create({ data: { ...data, projectId } });
+  },
 
   async list({ projectId, status, assigneeId, page, limit }: ListParams) {
     const where = {
@@ -60,17 +76,24 @@ export const issueService = {
       description?: string;
       status?: Status;
       priority?: Priority;
-      type?: IssueType
+      type?: IssueType;
       assigneeId?: string | null;
     },
   ) {
-    const issue = await prisma.issue.update({
-      where: { id },
-      data,
-    });
-
+    if (data.assigneeId) {
+      const issue = await prisma.issue.findUnique({
+        where: { id },
+        select: { project: { select: { workspaceId: true } } },
+      });
+      if (!issue) throw new Error("ISSUE_NOT_FOUND");
+      const isMember = await memberService.isMember(
+        data.assigneeId,
+        issue.project.workspaceId,
+      );
+      if (!isMember) throw new Error("ASSIGNEE_NOT_MEMBER");
+    }
+    const issue = await prisma.issue.update({ where: { id }, data });
     emitToProject(issue.projectId, "issue:updated", issue);
-
     return issue;
   },
 

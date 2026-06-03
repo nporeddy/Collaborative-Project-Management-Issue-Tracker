@@ -19,6 +19,7 @@ import labelFlatRoutes from "./routes/labelFlat.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import commentFlatRoutes from "./routes/commentFlat.routes.js";
 import { setIO } from "./lib/realtime.js";
+import memberRoutes from './routes/member.routes.js';
 const app = express();
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
@@ -40,6 +41,7 @@ app.use("/api/issues/:issueId/labels", authMiddleware, labelRoutes);
 app.use("/api/labels", authMiddleware, labelFlatRoutes);
 app.use("/api/issues/:issueId/comments", authMiddleware, commentRoutes);
 app.use("/api/comments", authMiddleware, commentFlatRoutes);
+app.use('/api/workspaces/:workspaceId/members', authMiddleware, memberRoutes);
 
 app.use(errorHandler);
 

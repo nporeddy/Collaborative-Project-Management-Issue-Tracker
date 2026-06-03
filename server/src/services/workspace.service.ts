@@ -1,7 +1,19 @@
 import { prisma } from "../lib/prisma.js";
 
 export const workspaceService = {
-  create: (data: { name: string }) => prisma.workspace.create({ data }),
+  async create(userId: string, data: { name: string }) {
+    return prisma.$transaction(async (tx) => {
+      const workspace = await tx.workspace.create({ data });
+      await tx.membership.create({
+        data: {
+          userId,
+          workspaceId: workspace.id,
+          role: "OWNER",
+        },
+      });
+      return workspace;
+    });
+  },
 
   findAll: () => prisma.workspace.findMany({ orderBy: { createdAt: "desc" } }),
 
