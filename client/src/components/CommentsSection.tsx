@@ -7,7 +7,10 @@ import {
 import { useAuth } from "../contexts/AuthContext";
 import Button from "./Button";
 import Spinner from "./Spinner";
-
+import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSocketEvent } from "../hooks/useSocketEvent";
+import type { Comment } from "../api/comments";
 interface Props {
   issueId: string;
 }
@@ -33,7 +36,40 @@ export default function CommentsSection({ issueId }: Props) {
   };
 
   const initial = (name?: string) => name?.charAt(0).toUpperCase() ?? "?";
+  const queryClient = useQueryClient();
 
+  const handleCommentCreated = useCallback(
+    (payload: { comment: Comment; actorId: string }) => {
+      // Ignore our own echo — the optimistic post (or success refetch) already handled it
+      if (payload.actorId === user?.id) return;
+      // Only react if this comment belongs to the issue we're viewing
+      if (payload.comment.issueId !== issueId) return;
+
+      queryClient.setQueryData<Comment[]>(["comments", issueId], (old) => {
+        if (!old) return [payload.comment];
+        // Avoid duplicates if a race somehow puts the same comment in
+        if (old.some((c) => c.id === payload.comment.id)) return old;
+        return [...old, payload.comment];
+      });
+    },
+    [queryClient, issueId, user?.id],
+  );
+
+  const handleCommentDeleted = useCallback(
+    (payload: { commentId: string; issueId: string; actorId: string }) => {
+      if (payload.actorId === user?.id) return;
+      if (payload.issueId !== issueId) return;
+
+      queryClient.setQueryData<Comment[]>(["comments", issueId], (old) => {
+        if (!old) return old;
+        return old.filter((c) => c.id !== payload.commentId);
+      });
+    },
+    [queryClient, issueId, user?.id],
+  );
+
+  useSocketEvent("comment:created", handleCommentCreated);
+  useSocketEvent("comment:deleted", handleCommentDeleted);
   return (
     <div className="space-y-4">
       <p className="text-sm font-medium text-text">
