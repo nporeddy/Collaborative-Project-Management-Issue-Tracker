@@ -61,9 +61,9 @@ model Issue {
   description String?
   status      Status     @default(TODO)
   priority    Priority   @default(MEDIUM)
+  type        IssueType  @default(TASK)  
   createdAt   DateTime   @default(now())
   updatedAt   DateTime   @updatedAt
-
   projectId   String
   project     Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   assigneeId  String?
@@ -113,4 +113,10 @@ enum Priority {
   MEDIUM
   HIGH
   URGENT
+}
+
+enum IssueType {
+  STORY
+  BUG
+  TASK
 }

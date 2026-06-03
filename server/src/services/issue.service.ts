@@ -1,5 +1,5 @@
 import { prisma } from "../lib/prisma.js";
-import type { Status, Priority } from "@prisma/client";
+import type { Status, Priority, IssueType  } from "@prisma/client";
 import { emitToProject } from "../lib/realtime.js";
 interface ListParams {
   projectId: string;
@@ -16,6 +16,7 @@ export const issueService = {
       title: string;
       description?: string;
       priority?: Priority;
+      type?: IssueType
       assigneeId?: string;
     },
   ) => prisma.issue.create({ data: { ...data, projectId } }),
@@ -59,6 +60,7 @@ export const issueService = {
       description?: string;
       status?: Status;
       priority?: Priority;
+      type?: IssueType
       assigneeId?: string | null;
     },
   ) {

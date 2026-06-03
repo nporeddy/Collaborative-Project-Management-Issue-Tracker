@@ -6,6 +6,7 @@ export interface Issue {
   description?: string;
   status: "TODO" | "IN_PROGRESS" | "IN_REVIEW" | "DONE";
   priority: "LOW" | "MEDIUM" | "HIGH" | "URGENT";
+  type: 'STORY' | 'BUG' | 'TASK';     
   projectId: string;
   assigneeId?: string | null;
   createdAt: string;

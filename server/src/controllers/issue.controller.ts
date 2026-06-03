@@ -4,11 +4,12 @@ import { issueService } from "../services/issue.service.js";
 
 const statusEnum = z.enum(["TODO", "IN_PROGRESS", "IN_REVIEW", "DONE"]);
 const priorityEnum = z.enum(["LOW", "MEDIUM", "HIGH", "URGENT"]);
-
+const typeEnum = z.enum(['STORY', 'BUG', 'TASK']);
 const createSchema = z.object({
   title: z.string().min(1).max(200),
   description: z.string().max(5000).optional(),
   priority: priorityEnum.optional(),
+  type: typeEnum.optional(),        
   assigneeId: z.string().optional(),
 });
 
@@ -17,6 +18,7 @@ const updateSchema = z.object({
   description: z.string().max(5000).optional(),
   status: statusEnum.optional(),
   priority: priorityEnum.optional(),
+  type: typeEnum.optional(),
   assigneeId: z.string().optional(),
 });
 
