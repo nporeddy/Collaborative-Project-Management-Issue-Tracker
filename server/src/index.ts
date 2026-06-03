@@ -18,7 +18,7 @@ import labelRoutes from "./routes/label.routes.js";
 import labelFlatRoutes from "./routes/labelFlat.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import commentFlatRoutes from "./routes/commentFlat.routes.js";
-
+import { setIO } from './lib/realtime.js';
 const app = express();
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
@@ -52,6 +52,7 @@ const io = new SocketIOServer(httpServer, {
     credentials: true,
   },
 });
+setIO(io);
 
 // Authenticate every connecting socket
 io.use((socket, next) => {

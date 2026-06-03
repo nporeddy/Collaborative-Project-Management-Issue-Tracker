@@ -1,6 +1,6 @@
 import { prisma } from "../lib/prisma.js";
 import type { Status, Priority } from "@prisma/client";
-
+import { emitToProject } from "../lib/realtime.js";
 interface ListParams {
   projectId: string;
   status?: Status;
@@ -52,16 +52,25 @@ export const issueService = {
       include: { comments: true, labels: true, assignee: true },
     }),
 
-  update: (
+  async update(
     id: string,
     data: {
       title?: string;
       description?: string;
       status?: Status;
       priority?: Priority;
-      assigneeId?: string;
+      assigneeId?: string | null;
     },
-  ) => prisma.issue.update({ where: { id }, data }),
+  ) {
+    const issue = await prisma.issue.update({
+      where: { id },
+      data,
+    });
+
+    emitToProject(issue.projectId, "issue:updated", issue);
+
+    return issue;
+  },
 
   remove: (id: string) => prisma.issue.delete({ where: { id } }),
 };

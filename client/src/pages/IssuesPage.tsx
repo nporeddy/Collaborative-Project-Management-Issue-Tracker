@@ -16,6 +16,10 @@ import SlideOver from "../components/SlideOver";
 import IssueDetailPanel from "../components/IssueDetailPanel";
 import Board from "../components/Board";
 import { useProjectRoom } from "../hooks/useProjectRoom";
+import { useCallback } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { useSocketEvent } from "../hooks/useSocketEvent";
+import type { Issue, IssueListResponse } from "../api/issues";
 
 const statusTone = {
   TODO: "todo",
@@ -49,7 +53,34 @@ export default function IssuesPage() {
     return saved === "board" ? "board" : "list";
   });
   useProjectRoom(projectId); // ← ADD this line
+  const queryClient = useQueryClient();
 
+  const handleIssueUpdated = useCallback(
+    (updated: Issue) => {
+      // Update list/board caches (any cache keyed under ['issues', projectId, ...])
+      queryClient.setQueriesData<IssueListResponse>(
+        { queryKey: ["issues", updated.projectId] },
+        (old) => {
+          if (!old) return old;
+          return {
+            ...old,
+            items: old.items.map((i) =>
+              i.id === updated.id ? { ...i, ...updated } : i,
+            ),
+          };
+        },
+      );
+
+      // If the detail panel for this issue is open, update its cache too
+      queryClient.setQueryData(["issue", updated.id], (old: unknown) => {
+        if (!old || typeof old !== "object") return old;
+        return { ...old, ...updated };
+      });
+    },
+    [queryClient],
+  );
+
+  useSocketEvent<Issue>("issue:updated", handleIssueUpdated);
   // Persist on change
   useEffect(() => {
     localStorage.setItem("issuesView", view);
