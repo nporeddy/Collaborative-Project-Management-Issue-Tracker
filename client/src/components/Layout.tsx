@@ -1,7 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { getSocket } from "../lib/socket";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -62,22 +61,6 @@ export default function Layout({ children }: { children: ReactNode }) {
               className="mt-1 w-full text-left px-3 py-2 rounded-md text-sm text-text-muted hover:bg-gray-50 hover:text-text transition-colors"
             >
               Sign out
-            </button>
-            <button
-              onClick={() => {
-                const s = getSocket();
-                if (!s) return console.log("No socket");
-                s.emit("ping", {
-                  message: "hello from client",
-                  at: Date.now(),
-                });
-                s.once("pong", (data: { echo: unknown; serverTime: number }) =>
-                  console.log("Got pong:", data),
-                );
-              }}
-              className="w-full text-left px-3 py-2 rounded-md text-xs text-text-subtle hover:bg-gray-50 hover:text-text transition-colors"
-            >
-              🔌 Ping server
             </button>
           </div>
         )}

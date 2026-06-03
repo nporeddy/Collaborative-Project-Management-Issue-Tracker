@@ -18,7 +18,7 @@ import labelRoutes from "./routes/label.routes.js";
 import labelFlatRoutes from "./routes/labelFlat.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import commentFlatRoutes from "./routes/commentFlat.routes.js";
-import { setIO } from './lib/realtime.js';
+import { setIO } from "./lib/realtime.js";
 const app = express();
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
@@ -68,32 +68,17 @@ io.use((socket, next) => {
     next(new Error("Invalid or expired token"));
   }
 });
-
-io.on('connection', (socket) => {
-  console.log(`Socket connected: ${socket.id} (user ${socket.data.userId})`);
-
-  socket.on('ping', (msg) => {
-    console.log(`Ping from ${socket.data.userId}:`, msg);
-    socket.emit('pong', { echo: msg, serverTime: Date.now() });
-  });
-
-  socket.on('project:join', (projectId: string) => {
-    if (typeof projectId !== 'string' || !projectId) return;
+io.on("connection", (socket) => {
+  socket.on("project:join", (projectId: string) => {
+    if (typeof projectId !== "string" || !projectId) return;
     socket.join(`project:${projectId}`);
-    console.log(`User ${socket.data.userId} joined project:${projectId}`);
   });
 
-  socket.on('project:leave', (projectId: string) => {
-    if (typeof projectId !== 'string' || !projectId) return;
+  socket.on("project:leave", (projectId: string) => {
+    if (typeof projectId !== "string" || !projectId) return;
     socket.leave(`project:${projectId}`);
-    console.log(`User ${socket.data.userId} left project:${projectId}`);
-  });
-
-  socket.on('disconnect', (reason) => {
-    console.log(`Socket disconnected: ${socket.id} (${reason})`);
   });
 });
-
 httpServer.listen(PORT, () =>
   console.log(`Server running on http://localhost:${PORT}`),
 );
