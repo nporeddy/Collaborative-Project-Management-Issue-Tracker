@@ -19,7 +19,7 @@ export const issueService = {
       description?: string;
       priority?: Priority;
       type?: IssueType;
-      assigneeId?: string;
+      assigneeId?: string | null;       
     },
   ) {
     if (data.assigneeId) {
@@ -46,7 +46,10 @@ export const issueService = {
 
     const [items, total] = await Promise.all([
       prisma.issue.findMany({
-        where,
+        where: { projectId },
+        include: {
+          assignee: { select: { id: true, name: true, email: true } },
+        },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
         take: limit,
@@ -66,7 +69,17 @@ export const issueService = {
   findById: (id: string) =>
     prisma.issue.findUnique({
       where: { id },
-      include: { comments: true, labels: true, assignee: true },
+      include: {
+        labels: true,
+        comments: {
+          orderBy: { createdAt: "asc" },
+          include: {
+            author: { select: { id: true, name: true, email: true } },
+          },
+        },
+        assignee: { select: { id: true, name: true, email: true } },
+        project: { select: { id: true, name: true, workspaceId: true } }, // ← ADD
+      },
     }),
 
   async update(

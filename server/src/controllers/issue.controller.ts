@@ -10,7 +10,7 @@ const createSchema = z.object({
   description: z.string().max(5000).optional(),
   priority: priorityEnum.optional(),
   type: typeEnum.optional(),
-  assigneeId: z.string().optional(),
+ assigneeId: z.string().nullable().optional(),
 });
 
 const updateSchema = z.object({
@@ -19,7 +19,7 @@ const updateSchema = z.object({
   status: statusEnum.optional(),
   priority: priorityEnum.optional(),
   type: typeEnum.optional(),
-  assigneeId: z.string().optional(),
+assigneeId: z.string().nullable().optional(),
 });
 
 export const issueController = {

@@ -9,6 +9,7 @@ export interface Issue {
   type: 'STORY' | 'BUG' | 'TASK';     
   projectId: string;
   assigneeId?: string | null;
+  assignee?: { id: string; name: string; email: string } | null;  // ← ADD
   createdAt: string;
 }
 
@@ -47,6 +48,8 @@ export interface IssueDetail extends Issue {
   }[];
   labels: { id: string; name: string; color: string; issueId: string }[];
   assignee?: { id: string; name: string; email: string };
+  project?: { id: string; name: string; workspaceId: string }; 
+
 }
 
 export const getIssue = async (id: string): Promise<IssueDetail> => {

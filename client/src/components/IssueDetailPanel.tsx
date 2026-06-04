@@ -3,6 +3,7 @@ import { useIssue, useUpdateIssue } from "../hooks/useIssues";
 import Badge from "./Badge";
 import Spinner from "./Spinner";
 import CommentsSection from "./CommentsSection";
+import { useMembers } from "../hooks/useMembers";
 
 const statusOptions = [
   { value: "TODO", label: "To Do" },
@@ -37,6 +38,8 @@ interface Props {
 
 export default function IssueDetailPanel({ issueId }: Props) {
   const { data: issue, isLoading, isError } = useIssue(issueId);
+  const workspaceId = issue?.project?.workspaceId;
+  const { data: members } = useMembers(workspaceId);
   const updateMutation = useUpdateIssue(issueId);
 
   const titleRef = useRef<HTMLInputElement>(null);
@@ -138,6 +141,28 @@ export default function IssueDetailPanel({ issueId }: Props) {
             {priorityOptions.map((opt) => (
               <option key={opt.value} value={opt.value}>
                 {opt.label}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block text-xs font-medium text-text-muted mb-1">
+            Assignee
+          </label>
+          <select
+            value={issue.assigneeId ?? ""}
+            onChange={(e) => {
+              const value = e.target.value;
+              updateMutation.mutate({
+                assigneeId: value === "" ? null : value,
+              });
+            }}
+            className="w-full text-sm px-3 py-2 border border-border rounded-md bg-surface focus:outline-none focus:ring-2 focus:ring-primary"
+          >
+            <option value="">Unassigned</option>
+            {members?.map((m) => (
+              <option key={m.user.id} value={m.user.id}>
+                {m.user.name}
               </option>
             ))}
           </select>

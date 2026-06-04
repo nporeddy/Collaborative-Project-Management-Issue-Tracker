@@ -264,13 +264,25 @@ export default function IssuesPage() {
               }
               className="w-full flex items-center gap-3 px-4 py-3 hover:bg-gray-50 transition-colors text-left cursor-pointer"
             >
-              <Badge tone={typeTone[issue.type]}>{typeLabel[issue.type]}</Badge>
+              <Badge tone={typeTone[issue.type] ?? "task"}>
+                {typeLabel[issue.type] ?? "Task"}
+              </Badge>
               <Badge tone={statusTone[issue.status]}>
                 {statusLabel[issue.status]}
               </Badge>
               <span className="flex-1 text-sm text-text truncate">
                 {issue.title}
               </span>
+              {issue.assignee && (
+                <span className="flex items-center gap-1.5">
+                  <span className="w-5 h-5 rounded-full bg-primary text-white text-[10px] font-semibold flex items-center justify-center">
+                    {issue.assignee.name.charAt(0).toUpperCase()}
+                  </span>
+                  <span className="text-xs text-text-muted truncate max-w-[100px]">
+                    {issue.assignee.name}
+                  </span>
+                </span>
+              )}
               <Badge tone={priorityTone[issue.priority]}>
                 {issue.priority}
               </Badge>

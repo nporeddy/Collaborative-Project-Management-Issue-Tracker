@@ -33,6 +33,7 @@ export default function IssueCard({ issue, onClick }: Props) {
   };
 
   const type = typeIndicator[issue.type] ?? typeIndicator.TASK;
+  const assigneeInitial = issue.assignee?.name?.charAt(0).toUpperCase();
 
   return (
     <button
@@ -65,6 +66,14 @@ export default function IssueCard({ issue, onClick }: Props) {
             day: "numeric",
           })}
         </span>
+        {assigneeInitial && (
+          <span
+            className="ml-auto w-5 h-5 rounded-full bg-primary text-white text-[10px] font-semibold flex items-center justify-center"
+            title={`Assigned to ${issue.assignee?.name}`}
+          >
+            {assigneeInitial}
+          </span>
+        )}
       </div>
     </button>
   );
