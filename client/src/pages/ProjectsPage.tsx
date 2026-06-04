@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useProjects, useCreateProject } from "../hooks/useProjects";
+import { useWorkspace } from "../hooks/useWorkspaces";
 import Button from "../components/Button";
 import Input from "../components/Input";
 import Card from "../components/Card";
@@ -9,6 +10,7 @@ import Spinner from "../components/Spinner";
 
 export default function ProjectsPage() {
   const { workspaceId } = useParams<{ workspaceId: string }>();
+  const { data: workspace } = useWorkspace(workspaceId!);
   const { data: projects, isLoading, isError } = useProjects(workspaceId!);
   const createMutation = useCreateProject(workspaceId!);
   const [name, setName] = useState("");
@@ -37,12 +39,49 @@ export default function ProjectsPage() {
         <span className="mr-1">←</span> Back to Workspaces
       </Link>
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-text">Projects</h1>
-        <p className="mt-1 text-sm text-text-muted">
-          Projects group related issues within a workspace.
-        </p>
+      {/* Header with Members link in top-right */}
+      <div className="flex items-end justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-text">
+            {workspace ? (
+              <>
+                <span className="text-text-muted font-normal">
+                  {workspace.name}
+                </span>
+                <span className="mx-2 text-text-subtle font-normal">·</span>
+                Projects
+              </>
+            ) : (
+              "Projects"
+            )}
+          </h1>
+          <p className="mt-1 text-sm text-text-muted">
+            Projects group related issues within a workspace.
+          </p>
+        </div>
+
+        <Link
+          to={`/workspaces/${workspaceId}/members`}
+          className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-text-muted hover:text-text bg-surface hover:bg-gray-50 border border-border rounded-md transition-colors"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="14"
+            height="14"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Members
+        </Link>
       </div>
 
       {/* Create form */}

@@ -50,7 +50,10 @@ export default function RegisterPage() {
           </label>
           <Input
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => {
+              setName(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="Your name"
             required
             autoComplete="name"
@@ -65,7 +68,10 @@ export default function RegisterPage() {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="you@example.com"
             required
             autoComplete="email"
@@ -79,7 +85,10 @@ export default function RegisterPage() {
           <Input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="At least 8 characters"
             required
             autoComplete="new-password"

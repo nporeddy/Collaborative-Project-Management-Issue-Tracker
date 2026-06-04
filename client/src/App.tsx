@@ -7,7 +7,7 @@ import RegisterPage from "./pages/RegisterPage";
 import WorkspacesPage from "./pages/WorkspacesPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import IssuesPage from "./pages/IssuesPage";
-
+import MembersPage from "./pages/MembersPage";
 export default function App() {
   return (
     <Routes>
@@ -39,6 +39,10 @@ export default function App() {
                 <Route
                   path="/workspaces/:workspaceId/projects"
                   element={<ProjectsPage />}
+                />
+                <Route
+                  path="/workspaces/:workspaceId/members"
+                  element={<MembersPage />}
                 />
                 <Route
                   path="/projects/:projectId/issues"

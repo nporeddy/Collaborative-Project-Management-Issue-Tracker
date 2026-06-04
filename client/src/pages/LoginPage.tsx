@@ -47,7 +47,10 @@ export default function LoginPage() {
           <Input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="you@example.com"
             required
             autoComplete="email"
@@ -62,7 +65,10 @@ export default function LoginPage() {
           <Input
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => {
+              setPassword(e.target.value);
+              if (error) setError(null);
+            }}
             placeholder="••••••••"
             required
             autoComplete="current-password"
