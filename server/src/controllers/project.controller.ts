@@ -1,6 +1,7 @@
 import type { Request, Response, NextFunction } from "express";
 import { z } from "zod";
 import { projectService } from "../services/project.service.js";
+import { requireStringParam } from "../lib/params.js";
 
 const createSchema = z.object({
   name: z.string().min(1).max(100),
@@ -11,9 +12,8 @@ const updateSchema = createSchema.partial();
 export const projectController = {
   async create(req: Request, res: Response, next: NextFunction) {
     try {
-      const { workspaceId } = req.params;
-      if (typeof workspaceId !== "string")
-        return res.status(400).json({ error: "Invalid workspaceId" });
+      const workspaceId = requireStringParam(req, res, "workspaceId");
+      if (!workspaceId) return;
       const data = createSchema.parse(req.body);
       const project = await projectService.create(workspaceId, data);
       res.status(201).json(project);
@@ -24,9 +24,8 @@ export const projectController = {
 
   async findByWorkspace(req: Request, res: Response, next: NextFunction) {
     try {
-      const { workspaceId } = req.params;
-      if (typeof workspaceId !== "string")
-        return res.status(400).json({ error: "Invalid workspaceId" });
+      const workspaceId = requireStringParam(req, res, "workspaceId");
+      if (!workspaceId) return;
       res.json(await projectService.findByWorkspace(workspaceId));
     } catch (err) {
       next(err);
@@ -35,10 +34,9 @@ export const projectController = {
 
   async findById(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      if (typeof id !== "string")
-        return res.status(400).json({ error: "Invalid id" });
-      const project = await projectService.findById(id);
+      const projectId = requireStringParam(req, res, "projectId");
+      if (!projectId) return;
+      const project = await projectService.findById(projectId);
       if (!project) return res.status(404).json({ error: "Project not found" });
       res.json(project);
     } catch (err) {
@@ -48,11 +46,10 @@ export const projectController = {
 
   async update(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      if (typeof id !== "string")
-        return res.status(400).json({ error: "Invalid id" });
+      const projectId = requireStringParam(req, res, "projectId");
+      if (!projectId) return;
       const data = updateSchema.parse(req.body);
-      const project = await projectService.update(id, data);
+      const project = await projectService.update(projectId, data);
       res.json(project);
     } catch (err) {
       next(err);
@@ -61,10 +58,9 @@ export const projectController = {
 
   async remove(req: Request, res: Response, next: NextFunction) {
     try {
-      const { id } = req.params;
-      if (typeof id !== "string")
-        return res.status(400).json({ error: "Invalid id" });
-      await projectService.remove(id);
+      const projectId = requireStringParam(req, res, "projectId");
+      if (!projectId) return;
+      await projectService.remove(projectId);
       res.status(204).send();
     } catch (err) {
       next(err);

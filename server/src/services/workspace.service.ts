@@ -15,7 +15,15 @@ export const workspaceService = {
     });
   },
 
-  findAll: () => prisma.workspace.findMany({ orderBy: { createdAt: "desc" } }),
+  listForUser: (userId: string) =>
+    prisma.workspace.findMany({
+      where: {
+        memberships: {
+          some: { userId },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
 
   findById: (id: string) => prisma.workspace.findUnique({ where: { id } }),
 
