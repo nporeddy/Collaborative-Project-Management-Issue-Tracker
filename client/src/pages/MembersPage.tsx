@@ -14,6 +14,7 @@ import Spinner from "../components/Spinner";
 import EmptyState from "../components/EmptyState";
 import Button from "../components/Button";
 import Input from "../components/Input";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 const roleTone = {
   OWNER: "urgent",
@@ -40,7 +41,10 @@ export default function MembersPage() {
   const [inviteRole, setInviteRole] = useState<"MEMBER" | "ADMIN">("MEMBER");
   const [inviteError, setInviteError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-
+  const [removeTarget, setRemoveTarget] = useState<{
+    userId: string;
+    name: string;
+  } | null>(null);
   const myRole = members?.find((m) => m.user.id === user?.id)?.role;
   const canInvite = myRole === "ADMIN" || myRole === "OWNER";
   const canRemove = canInvite; // same rule
@@ -68,16 +72,19 @@ export default function MembersPage() {
 
   const handleRemove = (memberUserId: string, memberName: string) => {
     setActionError(null);
-    const ok = window.confirm(
-      `Remove ${memberName} from this workspace? They will lose access immediately.`,
-    );
-    if (!ok) return;
-    removeMutation.mutate(memberUserId, {
+    setRemoveTarget({ userId: memberUserId, name: memberName });
+  };
+
+  const confirmRemove = () => {
+    if (!removeTarget) return;
+    removeMutation.mutate(removeTarget.userId, {
+      onSuccess: () => setRemoveTarget(null),
       onError: (err: unknown) => {
         const msg =
           (err as { response?: { data?: { error?: string } } })?.response?.data
             ?.error ?? "Failed to remove member.";
         setActionError(msg);
+        setRemoveTarget(null);
       },
     });
   };
@@ -263,6 +270,21 @@ export default function MembersPage() {
           })}
         </Card>
       )}
+      <ConfirmDialog
+        open={!!removeTarget}
+        title="Remove member"
+        message={
+          removeTarget
+            ? `Remove ${removeTarget.name} from this workspace? They will lose access immediately.`
+            : ""
+        }
+        confirmLabel="Remove"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmRemove}
+        onCancel={() => setRemoveTarget(null)}
+        isPending={removeMutation.isPending}
+      />
     </div>
   );
 }
