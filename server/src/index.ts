@@ -21,6 +21,9 @@ import commentFlatRoutes from "./routes/commentFlat.routes.js";
 import { setIO } from "./lib/realtime.js";
 import memberRoutes from './routes/member.routes.js';
 import { memberController } from './controllers/member.controller.js';
+import { sendEmail } from "./lib/email.js";
+import { generateOtp } from "./lib/otp.js";
+
 const app = express();
 
 app.use(cors({ origin: "http://localhost:5173", credentials: true }));
@@ -28,11 +31,8 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.get("/health", (_req, res) => res.json({ status: "ok" }));
-
-// Public auth routes — no middleware
 app.use("/api/auth", authRoutes);
 
-// PROTECTED — every line below must have authMiddleware
 app.use("/api/workspaces", authMiddleware, workspaceRoutes);
 app.use("/api/workspaces/:workspaceId/projects", authMiddleware, projectRoutes);
 app.use("/api/projects", authMiddleware, projectFlatRoutes);
