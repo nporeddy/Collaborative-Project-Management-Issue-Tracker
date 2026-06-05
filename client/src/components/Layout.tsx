@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 import { useAuth } from "../contexts/AuthContext";
+import UnverifiedBanner from "./UnverifiedBanner";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
@@ -66,8 +67,9 @@ export default function Layout({ children }: { children: ReactNode }) {
         )}
       </aside>
 
-      <main className="flex-1 overflow-auto">
-        <div className="max-w-5xl mx-auto px-8 py-10">{children}</div>
+      <main className="flex-1 overflow-auto flex flex-col">
+        <UnverifiedBanner />
+        <div className="max-w-5xl mx-auto px-8 py-10 w-full">{children}</div>
       </main>
     </div>
   );

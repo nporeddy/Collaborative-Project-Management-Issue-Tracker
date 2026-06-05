@@ -4,7 +4,7 @@ import { tokenService } from "../lib/jwt.js";
 import { generateOtp, OTP_TTL_MS } from "../lib/otp.js";
 import { sendEmail } from "../lib/email.js";
 
-const RESEND_COOLDOWN_MS = 60 * 1000; // 1 minute between resends
+const RESEND_COOLDOWN_MS = 60 * 1000; 
 
 export const authService = {
   async register(data: { email: string; password: string; name: string }) {
@@ -17,7 +17,6 @@ export const authService = {
 
     const passwordHash = await bcrypt.hash(data.password, 10);
 
-    // Create user + verification token + send email in a transaction-safe way
     const user = await prisma.user.create({
       data: {
         email: data.email,
@@ -37,7 +36,6 @@ export const authService = {
       },
     });
 
-    // Send email — wrapped so a transient send failure doesn't break registration
     try {
       await sendEmail({
         to: user.email,
@@ -51,7 +49,6 @@ export const authService = {
       });
     } catch (err) {
       console.error("[auth.register] Failed to send verification email:", err);
-      // Don't throw — user can request a resend
     }
 
     return user;

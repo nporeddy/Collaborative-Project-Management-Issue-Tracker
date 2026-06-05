@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import AuthLayout from "../components/AuthLayout";
@@ -14,6 +14,13 @@ export default function RegisterPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const { logout, user } = useAuth();
+
+  useEffect(() => {
+    if (user && !user.emailVerified) {
+      logout();
+    }
+  }, [user, logout]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();

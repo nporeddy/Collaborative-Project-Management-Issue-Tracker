@@ -22,7 +22,16 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
     try {
-      await login(email, password);
+      const user = await login(email, password);
+        console.log("LOGIN RESULT:", user);                        // ← add this
+  console.log("emailVerified value:", user.emailVerified);   // ← add this
+  console.log("!user.emailVerified:", !user.emailVerified);
+      if (!user.emailVerified) {
+        navigate(`/verify-email?email=${encodeURIComponent(email)}`, {
+          replace: true,
+        });
+        return;
+      }
       navigate(from, { replace: true });
     } catch (err: unknown) {
       const msg =
