@@ -25,3 +25,15 @@ export const getProject = async (id: string): Promise<Project> => {
   const res = await api.get(`/projects/${id}`);
   return res.data;
 };
+
+export const updateProject = async (
+  id: string,
+  data: { name?: string; key?: string }
+) => {
+  const res = await api.patch(`/projects/${id}`, data);
+  return res.data;
+};
+
+export const deleteProject = async (id: string): Promise<void> => {
+  await api.delete(`/projects/${id}`);
+};

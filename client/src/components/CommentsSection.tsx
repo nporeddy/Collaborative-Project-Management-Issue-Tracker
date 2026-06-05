@@ -1,28 +1,34 @@
-import { useRef, useState } from "react";
+import { useRef, useState, useCallback } from "react";
 import {
   useComments,
   useCreateComment,
   useDeleteComment,
 } from "../hooks/useComments";
 import { useAuth } from "../contexts/AuthContext";
+import { useMyRole } from "../hooks/useMembers";
 import Button from "./Button";
 import Spinner from "./Spinner";
-import { useCallback } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSocketEvent } from "../hooks/useSocketEvent";
 import type { Comment } from "../api/comments";
+
 interface Props {
   issueId: string;
+  workspaceId?: string;
 }
 
-export default function CommentsSection({ issueId }: Props) {
+export default function CommentsSection({ issueId, workspaceId }: Props) {
   const { user } = useAuth();
+  const myRole = useMyRole(workspaceId);
   const { data: comments, isLoading } = useComments(issueId);
   const createMutation = useCreateComment(issueId);
   const deleteMutation = useDeleteComment(issueId);
 
   const [draft, setDraft] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const queryClient = useQueryClient();
+
+  const canDeleteAny = myRole === "ADMIN" || myRole === "OWNER";
 
   const handlePost = () => {
     const body = draft.trim();
@@ -36,18 +42,14 @@ export default function CommentsSection({ issueId }: Props) {
   };
 
   const initial = (name?: string) => name?.charAt(0).toUpperCase() ?? "?";
-  const queryClient = useQueryClient();
 
   const handleCommentCreated = useCallback(
     (payload: { comment: Comment; actorId: string }) => {
-      // Ignore our own echo — the optimistic post (or success refetch) already handled it
       if (payload.actorId === user?.id) return;
-      // Only react if this comment belongs to the issue we're viewing
       if (payload.comment.issueId !== issueId) return;
 
       queryClient.setQueryData<Comment[]>(["comments", issueId], (old) => {
         if (!old) return [payload.comment];
-        // Avoid duplicates if a race somehow puts the same comment in
         if (old.some((c) => c.id === payload.comment.id)) return old;
         return [...old, payload.comment];
       });
@@ -70,6 +72,7 @@ export default function CommentsSection({ issueId }: Props) {
 
   useSocketEvent("comment:created", handleCommentCreated);
   useSocketEvent("comment:deleted", handleCommentDeleted);
+
   return (
     <div className="space-y-4">
       <p className="text-sm font-medium text-text">
@@ -91,6 +94,7 @@ export default function CommentsSection({ issueId }: Props) {
         <ul className="space-y-3">
           {comments.map((c) => {
             const isAuthor = user?.id === c.authorId;
+            const canDeleteThis = isAuthor || canDeleteAny;
             return (
               <li key={c.id} className="flex gap-3">
                 <span className="w-8 h-8 shrink-0 rounded-full bg-gray-100 text-text-muted text-xs font-semibold flex items-center justify-center">
@@ -108,10 +112,10 @@ export default function CommentsSection({ issueId }: Props) {
                   <p className="text-sm text-text mt-0.5 whitespace-pre-wrap break-words">
                     {c.body}
                   </p>
-                  {isAuthor && (
+                  {canDeleteThis && (
                     <button
                       onClick={() => deleteMutation.mutate(c.id)}
-                      className="mt-1 text-xs text-text-muted hover:text-danger transition-colors cursor-pointer"
+                      className="mt-1 text-xs text-danger hover:text-danger transition-colors cursor-pointer"
                     >
                       Delete
                     </button>

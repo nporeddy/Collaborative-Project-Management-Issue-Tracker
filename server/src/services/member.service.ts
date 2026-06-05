@@ -65,4 +65,15 @@ export const memberService = {
       include: { user: { select: { id: true, name: true, email: true } } },
     });
   },
+  async listMyRolesAcross(userId: string) {
+    const memberships = await prisma.membership.findMany({
+      where: { userId },
+      select: { workspaceId: true, role: true },
+    });
+    const map: Record<string, "OWNER" | "ADMIN" | "MEMBER"> = {};
+    for (const m of memberships) {
+      map[m.workspaceId] = m.role;
+    }
+    return map;
+  },
 };

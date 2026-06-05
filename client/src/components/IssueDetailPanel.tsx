@@ -1,9 +1,10 @@
-import { useRef } from "react";
-import { useIssue, useUpdateIssue } from "../hooks/useIssues";
+import { useRef, useState } from "react";
+import { useIssue, useUpdateIssue, useDeleteIssue } from "../hooks/useIssues";
 import Badge from "./Badge";
 import Spinner from "./Spinner";
 import CommentsSection from "./CommentsSection";
-import { useMembers } from "../hooks/useMembers";
+import ConfirmDialog from "./ConfirmDialog";
+import { useMembers, useMyRole } from "../hooks/useMembers";
 
 const statusOptions = [
   { value: "TODO", label: "To Do" },
@@ -34,13 +35,19 @@ const typeOptions = [
 
 interface Props {
   issueId: string;
+  onIssueDeleted?: () => void;
 }
 
-export default function IssueDetailPanel({ issueId }: Props) {
+export default function IssueDetailPanel({ issueId, onIssueDeleted }: Props) {
   const { data: issue, isLoading, isError } = useIssue(issueId);
   const workspaceId = issue?.project?.workspaceId;
   const { data: members } = useMembers(workspaceId);
+  const myRole = useMyRole(workspaceId);
   const updateMutation = useUpdateIssue(issueId);
+  const deleteMutation = useDeleteIssue(issue?.projectId ?? "");
+
+  const [deleteOpen, setDeleteOpen] = useState(false);
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const titleRef = useRef<HTMLInputElement>(null);
   const descriptionRef = useRef<HTMLTextAreaElement>(null);
@@ -57,6 +64,8 @@ export default function IssueDetailPanel({ issueId }: Props) {
     return <div className="p-6 text-sm text-danger">Failed to load issue.</div>;
   }
 
+  const canDelete = myRole === "ADMIN" || myRole === "OWNER";
+
   const handleTitleBlur = () => {
     const newTitle = titleRef.current?.value.trim();
     if (newTitle && newTitle !== issue.title) {
@@ -69,6 +78,22 @@ export default function IssueDetailPanel({ issueId }: Props) {
     if (newDesc !== (issue.description ?? "")) {
       updateMutation.mutate({ description: newDesc });
     }
+  };
+
+  const confirmDelete = () => {
+    deleteMutation.mutate(issue.id, {
+      onSuccess: () => {
+        setDeleteOpen(false);
+        onIssueDeleted?.();
+      },
+      onError: (err: unknown) => {
+        const msg =
+          (err as { response?: { data?: { error?: string } } })?.response?.data
+            ?.error ?? "Failed to delete issue.";
+        setDeleteError(msg);
+        setDeleteOpen(false);
+      },
+    });
   };
 
   return (
@@ -145,6 +170,7 @@ export default function IssueDetailPanel({ issueId }: Props) {
             ))}
           </select>
         </div>
+
         <div>
           <label className="block text-xs font-medium text-text-muted mb-1">
             Assignee
@@ -193,8 +219,42 @@ export default function IssueDetailPanel({ issueId }: Props) {
       </div>
 
       <div className="pt-4 border-t border-border">
-        <CommentsSection issueId={issue.id} />
+        <CommentsSection issueId={issue.id} workspaceId={workspaceId} />
       </div>
+
+      {/* Delete error */}
+      {deleteError && (
+        <div className="text-sm text-danger bg-red-50 border border-red-100 rounded-md px-3 py-2">
+          {deleteError}
+        </div>
+      )}
+
+      {/* Danger zone — admin+ only */}
+      {canDelete && (
+        <div className="pt-4 border-t border-border">
+          <button
+            onClick={() => {
+              setDeleteError(null);
+              setDeleteOpen(true);
+            }}
+            className="text-xs text-danger hover:text-danger transition-colors cursor-pointer"
+          >
+            Delete issue
+          </button>
+        </div>
+      )}
+
+      <ConfirmDialog
+        open={deleteOpen}
+        title="Delete issue"
+        message={`Permanently delete "${issue.title}"? This cannot be undone.`}
+        confirmLabel="Delete issue"
+        cancelLabel="Cancel"
+        variant="danger"
+        onConfirm={confirmDelete}
+        onCancel={() => setDeleteOpen(false)}
+        isPending={deleteMutation.isPending}
+      />
     </div>
   );
 }

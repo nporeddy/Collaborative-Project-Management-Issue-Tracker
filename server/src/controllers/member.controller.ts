@@ -92,4 +92,14 @@ export const memberController = {
       next(err);
     }
   },
+  async listMyRoles(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user)
+        return res.status(401).json({ error: "Not authenticated" });
+      const roles = await memberService.listMyRolesAcross(req.user.id);
+      res.json(roles);
+    } catch (err) {
+      next(err);
+    }
+  },
 };

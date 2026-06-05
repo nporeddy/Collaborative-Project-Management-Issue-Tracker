@@ -14,7 +14,10 @@ async function resolveWorkspaceId(req: Request): Promise<string | null> {
   const directWorkspaceId = getStringParam(req, "workspaceId");
   if (directWorkspaceId) return directWorkspaceId;
 
-  const projectId = getStringParam(req, "projectId");
+  // Project routes — could use :projectId or :id under /projects
+  const projectId =
+    getStringParam(req, "projectId") ??
+    (req.baseUrl.endsWith("/projects") ? getStringParam(req, "id") : null);
   if (projectId) {
     const p = await prisma.project.findUnique({
       where: { id: projectId },
@@ -23,18 +26,21 @@ async function resolveWorkspaceId(req: Request): Promise<string | null> {
     return p?.workspaceId ?? null;
   }
 
-  const id = getStringParam(req, "id");
-  if (id && req.baseUrl.endsWith("/issues")) {
+  const issueId =
+    getStringParam(req, "issueId") ??
+    (req.baseUrl.endsWith("/issues") ? getStringParam(req, "id") : null);
+  if (issueId) {
     const issue = await prisma.issue.findUnique({
-      where: { id },
+      where: { id: issueId },
       include: { project: { select: { workspaceId: true } } },
     });
     return issue?.project.workspaceId ?? null;
   }
 
-  if (id && req.baseUrl.endsWith("/comments")) {
+  const commentId = getStringParam(req, "id");
+  if (commentId && req.baseUrl.endsWith("/comments")) {
     const c = await prisma.comment.findUnique({
-      where: { id },
+      where: { id: commentId },
       include: {
         issue: { include: { project: { select: { workspaceId: true } } } },
       },

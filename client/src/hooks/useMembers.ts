@@ -5,6 +5,10 @@ import {
   removeMember,
   updateMemberRole,
 } from "../api/members";
+import { useMemo } from "react";
+import { useAuth } from "../contexts/AuthContext";
+import { api } from "../api/client";
+
 
 export function useMembers(workspaceId: string | undefined) {
   return useQuery({
@@ -44,5 +48,29 @@ export function useUpdateMemberRole(workspaceId: string) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", workspaceId] });
     },
+  });
+}
+
+export function useMyRole(workspaceId: string | undefined): "OWNER" | "ADMIN" | "MEMBER" | null {
+  const { user } = useAuth();
+  const { data: members } = useMembers(workspaceId);
+
+  return useMemo(() => {
+    if (!user || !members) return null;
+    const me = members.find((m) => m.user.id === user.id);
+    return me?.role ?? null;
+  }, [user, members]);
+}
+
+export type RoleMap = Record<string, "OWNER" | "ADMIN" | "MEMBER">;
+
+export function useMyRoles() {
+  return useQuery({
+    queryKey: ["my-roles"],
+    queryFn: async (): Promise<RoleMap> => {
+      const res = await api.get("/me/roles");
+      return res.data;
+    },
+    staleTime: 60 * 1000,
   });
 }

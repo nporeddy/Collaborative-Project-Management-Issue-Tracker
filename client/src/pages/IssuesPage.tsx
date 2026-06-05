@@ -300,7 +300,12 @@ export default function IssuesPage() {
         onClose={() => navigate(`/projects/${projectId}/issues`)}
         title="Issue"
       >
-        {issueId && <IssueDetailPanel issueId={issueId} />}
+        {issueId && (
+          <IssueDetailPanel
+            issueId={issueId}
+            onIssueDeleted={() => navigate(`/projects/${projectId}/issues`)}
+          />
+        )}
       </SlideOver>
     </div>
   );
