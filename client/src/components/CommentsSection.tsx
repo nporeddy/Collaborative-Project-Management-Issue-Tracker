@@ -109,7 +109,7 @@ export default function CommentsSection({ issueId, workspaceId }: Props) {
                       {new Date(c.createdAt).toLocaleString()}
                     </span>
                   </div>
-                  <p className="text-sm text-text mt-0.5 whitespace-pre-wrap break-words">
+                  <p className="text-sm text-text mt-0.5 whitespace-pre-wrap wrap-break-word">
                     {c.body}
                   </p>
                   {canDeleteThis && (

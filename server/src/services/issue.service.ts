@@ -1,5 +1,10 @@
 import { prisma } from "../lib/prisma.js";
-import type { Status, Priority, IssueType } from "@prisma/client";
+import type {
+  Status,
+  Priority,
+  IssueType,
+  Prisma,
+} from "../generated/prisma/client.js";
 import { emitToProject } from "../lib/realtime.js";
 import { memberService } from "./member.service.js";
 
@@ -19,7 +24,7 @@ export const issueService = {
       description?: string;
       priority?: Priority;
       type?: IssueType;
-      assigneeId?: string | null;       
+      assigneeId?: string | null;
     },
   ) {
     if (data.assigneeId) {
@@ -37,16 +42,39 @@ export const issueService = {
     return prisma.issue.create({ data: { ...data, projectId } });
   },
 
-  async list({ projectId, status, assigneeId, page, limit }: ListParams) {
-    const where = {
-      projectId,
-      ...(status ? { status } : {}),
-      ...(assigneeId ? { assigneeId } : {}),
-    };
+  async list({
+    projectId,
+    status,
+    assigneeIds,
+    includeUnassigned,
+    page,
+    limit,
+  }: {
+    projectId: string;
+    status?: Status;
+    assigneeIds?: string[];
+    includeUnassigned?: boolean;
+    page: number;
+    limit: number;
+  }) {
+    const where: Prisma.IssueWhereInput = { projectId };
+    if (status) where.status = status;
+
+    // Assignee filter — combine selected user IDs and unassigned via OR
+    if ((assigneeIds && assigneeIds.length > 0) || includeUnassigned) {
+      const orConditions: Prisma.IssueWhereInput[] = [];
+      if (assigneeIds && assigneeIds.length > 0) {
+        orConditions.push({ assigneeId: { in: assigneeIds } });
+      }
+      if (includeUnassigned) {
+        orConditions.push({ assigneeId: null });
+      }
+      where.OR = orConditions;
+    }
 
     const [items, total] = await Promise.all([
       prisma.issue.findMany({
-        where: { projectId },
+        where,
         include: {
           assignee: { select: { id: true, name: true, email: true } },
         },

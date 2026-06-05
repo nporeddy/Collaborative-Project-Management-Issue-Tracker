@@ -8,20 +8,31 @@ import {
 } from "../api/issues";
 import type { IssueListResponse } from "../api/issues";
 
-export function useIssues(projectId: string, limit = 20) {
+interface UseIssuesOptions {
+  limit?: number;
+  assigneeIds?: string[];
+  includeUnassigned?: boolean;
+}
+
+export function useIssues(projectId: string, options: UseIssuesOptions = {}) {
+  const { limit = 20, assigneeIds, includeUnassigned } = options;
   return useQuery({
-    queryKey: ["issues", projectId, limit],
-    queryFn: () => getIssues(projectId, { limit }),
+    queryKey: ["issues", projectId, limit, assigneeIds, includeUnassigned],
+    queryFn: () =>
+      getIssues(projectId, { limit, assigneeIds, includeUnassigned }),
     enabled: !!projectId,
   });
 }
 export function useCreateIssue(projectId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { title: string; priority?: string; type?: 'STORY' | 'BUG' | 'TASK' }) =>
-      createIssue(projectId, data),
+    mutationFn: (data: {
+      title: string;
+      priority?: string;
+      type?: "STORY" | "BUG" | "TASK";
+    }) => createIssue(projectId, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['issues', projectId] });
+      queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
     },
   });
 }

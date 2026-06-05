@@ -148,7 +148,7 @@ export default function MembersPage() {
 
       {/* Invite form */}
       {canInvite && (
-        <Card className="!p-4">
+        <Card className="p-4">
           <p className="text-xs font-medium text-text-muted mb-2 uppercase tracking-wide">
             Invite a member
           </p>
@@ -188,9 +188,8 @@ export default function MembersPage() {
         </Card>
       )}
 
-      {/* Generic action error (remove / role change) */}
       {actionError && (
-        <Card className="!p-3 !bg-red-50 !border-red-200">
+        <Card className="p-3 bg-red-50 border-red-200">
           <p className="text-sm text-danger">{actionError}</p>
         </Card>
       )}
@@ -208,7 +207,7 @@ export default function MembersPage() {
           description="Invite people to collaborate."
         />
       ) : (
-        <Card className="!p-0 divide-y divide-border">
+        <Card className="p-0 divide-y divide-border">
           {members.map((m) => {
             const initial = m.user.name.charAt(0).toUpperCase();
             const isOwner = m.role === "OWNER";

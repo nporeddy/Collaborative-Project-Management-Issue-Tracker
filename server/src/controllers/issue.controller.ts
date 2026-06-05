@@ -57,15 +57,21 @@ export const issueController = {
       const status = req.query.status
         ? statusEnum.parse(req.query.status)
         : undefined;
-      const assigneeId =
-        typeof req.query.assigneeId === "string"
-          ? req.query.assigneeId
-          : undefined;
+
+      // Parse comma-separated assignee IDs
+      const assigneeIdsRaw =
+        typeof req.query.assigneeIds === "string" ? req.query.assigneeIds : "";
+      const assigneeIds = assigneeIdsRaw
+        ? assigneeIdsRaw.split(",").filter(Boolean)
+        : undefined;
+
+      const includeUnassigned = req.query.includeUnassigned === "true";
 
       const result = await issueService.list({
         projectId,
         status,
-        assigneeId,
+        assigneeIds,
+        includeUnassigned,
         page,
         limit,
       });

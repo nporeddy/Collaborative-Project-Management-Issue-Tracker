@@ -21,6 +21,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { useSocketEvent } from "../hooks/useSocketEvent";
 import type { Issue, IssueListResponse } from "../api/issues";
 import { getSocket } from "../lib/socket";
+import { useMembers } from "../hooks/useMembers";
+import MultiSelectAssignee from "../components/MultiSelectAssignee";
+
 const statusTone = {
   TODO: "todo",
   IN_PROGRESS: "progress",
@@ -63,8 +66,15 @@ export default function IssuesPage() {
     const saved = localStorage.getItem("issuesView");
     return saved === "board" ? "board" : "list";
   });
-  useProjectRoom(projectId); // ← ADD this line
+  useProjectRoom(projectId);
   const queryClient = useQueryClient();
+
+  const [selectedAssigneeIds, setSelectedAssigneeIds] = useState<string[]>([]);
+  const [includeUnassigned, setIncludeUnassigned] = useState(false);
+
+  const { data: project } = useProject(projectId!);
+  const workspaceId = project?.workspaceId;
+  const { data: members } = useMembers(workspaceId);
 
   const handleIssueUpdated = useCallback(
     (updated: Issue) => {
@@ -97,13 +107,11 @@ export default function IssuesPage() {
     localStorage.setItem("issuesView", view);
   }, [view]);
 
-  // Add near your other hooks
   useEffect(() => {
     const socket = getSocket();
     if (!socket) return;
 
     const handleReconnect = () => {
-      // Refetch all caches we care about for this view
       queryClient.invalidateQueries({ queryKey: ["issues", projectId] });
     };
 
@@ -113,11 +121,12 @@ export default function IssuesPage() {
     };
   }, [queryClient, projectId]);
 
-  const { data, isLoading, isError } = useIssues(
-    projectId!,
-    view === "board" ? 200 : 20,
-  );
-  const { data: project } = useProject(projectId!);
+  const { data, isLoading, isError } = useIssues(projectId!, {
+    limit: view === "board" ? 200 : 20,
+    assigneeIds:
+      selectedAssigneeIds.length > 0 ? selectedAssigneeIds : undefined,
+    includeUnassigned,
+  });
   const createMutation = useCreateIssue(projectId!);
   const [title, setTitle] = useState("");
   const [newIssueType, setNewIssueType] = useState<"STORY" | "BUG" | "TASK">(
@@ -138,6 +147,7 @@ export default function IssuesPage() {
       },
     );
   };
+
 
   return (
     <div className="space-y-8">
@@ -208,7 +218,7 @@ export default function IssuesPage() {
       </div>
 
       {/* Create form */}
-      <Card className="!p-4">
+      <Card className="p-4">
         <div className="flex gap-2">
           <Input
             value={title}
@@ -235,7 +245,20 @@ export default function IssuesPage() {
           </Button>
         </div>
       </Card>
-
+      {/* Filter */}
+      {members && members.length > 0 && (
+        <div className="flex justify-end">
+          <MultiSelectAssignee
+            members={members}
+            selectedIds={selectedAssigneeIds}
+            includeUnassigned={includeUnassigned}
+            onChange={(ids, unassigned) => {
+              setSelectedAssigneeIds(ids);
+              setIncludeUnassigned(unassigned);
+            }}
+          />
+        </div>
+      )}
       {/* List or Board */}
       {isLoading ? (
         <Spinner label="Loading issues…" />
