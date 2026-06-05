@@ -26,8 +26,10 @@ export default function RegisterPage() {
 
     setLoading(true);
     try {
-      await register(email, password, name);
-      navigate("/workspaces", { replace: true });
+      const result = await register(email, password, name);
+      navigate(`/verify-email?email=${encodeURIComponent(result.email)}`, {
+        replace: true,
+      });
     } catch (err: unknown) {
       const msg =
         (err as { response?: { data?: { error?: string } } })?.response?.data

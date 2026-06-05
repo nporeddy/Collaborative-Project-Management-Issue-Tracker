@@ -5,6 +5,7 @@ export interface AuthUser {
   email: string;
   name: string;
   createdAt: string;
+  emailVerified?: string | null;
 }
 
 interface LoginResponse {
@@ -12,12 +13,17 @@ interface LoginResponse {
   user: AuthUser;
 }
 
+interface RegisterResponse {
+  message: string;
+  email: string;
+}
+
 export const authApi = {
   async register(data: {
     email: string;
     password: string;
     name: string;
-  }): Promise<AuthUser> {
+  }): Promise<RegisterResponse> {
     const res = await api.post("/auth/register", data);
     return res.data;
   },
@@ -27,6 +33,19 @@ export const authApi = {
     password: string;
   }): Promise<LoginResponse> {
     const res = await api.post("/auth/login", data);
+    return res.data;
+  },
+
+  async verifyEmail(data: {
+    email: string;
+    code: string;
+  }): Promise<LoginResponse> {
+    const res = await api.post("/auth/verify-email", data);
+    return res.data;
+  },
+
+  async resendVerification(email: string): Promise<{ message: string }> {
+    const res = await api.post("/auth/resend-verification", { email });
     return res.data;
   },
 

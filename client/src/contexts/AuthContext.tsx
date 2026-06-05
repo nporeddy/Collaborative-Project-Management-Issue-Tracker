@@ -2,15 +2,25 @@ import { createContext, useContext, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { authApi, type AuthUser } from "../api/auth";
 import { setAuthToken, registerAuthCallbacks } from "../api/client";
-import { connectSocket, disconnectSocket } from "../lib/socket";
-import { getSocket } from "../lib/socket";
-import { registerTokenGetter } from "../lib/socket";
+import {
+  connectSocket,
+  disconnectSocket,
+  getSocket,
+  registerTokenGetter,
+} from "../lib/socket";
+
 interface AuthContextValue {
   user: AuthUser | null;
   isLoading: boolean;
   socketConnected: boolean;
   login: (email: string, password: string) => Promise<void>;
-  register: (email: string, password: string, name: string) => Promise<void>;
+  register: (
+    email: string,
+    password: string,
+    name: string,
+  ) => Promise<{ email: string }>;
+  verifyEmail: (email: string, code: string) => Promise<void>;
+  resendVerification: (email: string) => Promise<void>;
   logout: () => Promise<void>;
 }
 
@@ -22,6 +32,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [socketConnected, setSocketConnected] = useState(() => {
     return getSocket()?.connected ?? false;
   });
+
   useEffect(() => {
     registerAuthCallbacks({
       onTokenRefreshed: (_token) => {},
@@ -43,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     });
   }, []);
+
   useEffect(() => {
     let cancelled = false;
 
@@ -56,7 +68,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           connectSocket(accessToken);
         }
       } catch {
-        // No valid refresh cookie → user is not logged in..
+        // No valid refresh cookie → user is not logged in
       } finally {
         if (!cancelled) setIsLoading(false);
       }
@@ -83,6 +95,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       socket.off("disconnect", onDisconnect);
     };
   }, [user]);
+
   async function login(email: string, password: string) {
     const result = await authApi.login({ email, password });
     setAuthToken(result.accessToken);
@@ -91,9 +104,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   async function register(email: string, password: string, name: string) {
-    await authApi.register({ email, password, name });
-    // Auto-login after register
-    await login(email, password);
+    const result = await authApi.register({ email, password, name });
+    // No auto-login — user needs to verify email first
+    return { email: result.email };
+  }
+
+  async function verifyEmail(email: string, code: string) {
+    const result = await authApi.verifyEmail({ email, code });
+    setAuthToken(result.accessToken);
+    setUser(result.user);
+    connectSocket(result.accessToken);
+  }
+
+  async function resendVerification(email: string) {
+    await authApi.resendVerification(email);
   }
 
   async function logout() {
@@ -108,12 +132,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <AuthContext.Provider
-      value={{ user, isLoading, socketConnected, login, register, logout }}
+      value={{
+        user,
+        isLoading,
+        socketConnected,
+        login,
+        register,
+        verifyEmail,
+        resendVerification,
+        logout,
+      }}
     >
       {children}
     </AuthContext.Provider>
   );
 }
+
 // eslint-disable-next-line react-refresh/only-export-components
 export function useAuth() {
   const ctx = useContext(AuthContext);

@@ -8,6 +8,7 @@ import WorkspacesPage from "./pages/WorkspacesPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import IssuesPage from "./pages/IssuesPage";
 import MembersPage from "./pages/MembersPage";
+import VerifyEmailPage from "./pages/VerifyEmailPage";
 export default function App() {
   return (
     <Routes>
@@ -24,6 +25,14 @@ export default function App() {
         element={
           <PublicRoute>
             <RegisterPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/verify-email"
+        element={
+          <PublicRoute>
+            <VerifyEmailPage />
           </PublicRoute>
         }
       />
