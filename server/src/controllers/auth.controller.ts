@@ -13,12 +13,24 @@ const loginSchema = z.object({
   password: z.string().min(1),
 });
 
+const verifyEmailSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
+});
+
+const resendSchema = z.object({
+  email: z.string().email(),
+});
+
 export const authController = {
   async register(req: Request, res: Response, next: NextFunction) {
     try {
       const data = registerSchema.parse(req.body);
       const user = await authService.register(data);
-      res.status(201).json(user);
+      res.status(201).json({
+        message: "Account created. Check your email for a verification code.",
+        email: user.email,
+      });
     } catch (err) {
       if (err instanceof Error && err.message === "EMAIL_TAKEN") {
         return res
@@ -34,16 +46,14 @@ export const authController = {
       const data = loginSchema.parse(req.body);
       const result = await authService.login(data);
 
-      // Refresh token → HTTP-only cookie (secure storage)
       res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days in ms
+        maxAge: 7 * 24 * 60 * 60 * 1000,
         path: "/api/auth",
       });
 
-      // Access token + user → response body (frontend reads these)
       res.json({
         accessToken: result.accessToken,
         user: result.user,
@@ -55,6 +65,7 @@ export const authController = {
       next(err);
     }
   },
+
   async refresh(req: Request, res: Response, next: NextFunction) {
     try {
       const refreshToken = req.cookies?.refreshToken;
@@ -83,5 +94,62 @@ export const authController = {
   async logout(_req: Request, res: Response) {
     res.clearCookie("refreshToken", { path: "/api/auth" });
     res.status(204).send();
+  },
+
+  async verifyEmail(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = verifyEmailSchema.parse(req.body);
+      const result = await authService.verifyEmail(data);
+
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        path: "/api/auth",
+      });
+
+      res.json({
+        accessToken: result.accessToken,
+        user: result.user,
+      });
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === "INVALID_CODE") {
+          return res
+            .status(400)
+            .json({ error: "Invalid or expired verification code" });
+        }
+        if (err.message === "ALREADY_VERIFIED") {
+          return res
+            .status(400)
+            .json({ error: "Email is already verified. Please log in." });
+        }
+      }
+      next(err);
+    }
+  },
+
+  async resendVerification(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = resendSchema.parse(req.body);
+      await authService.resendVerification(data.email);
+      res.json({ message: "If an account exists, a new code has been sent." });
+    } catch (err) {
+      if (err instanceof Error) {
+        if (err.message === "ALREADY_VERIFIED") {
+          return res
+            .status(400)
+            .json({ error: "Email is already verified. Please log in." });
+        }
+        if (err.message === "RESEND_TOO_SOON") {
+          const waitSec = (err as Error & { waitSec?: number }).waitSec ?? 60;
+          return res.status(429).json({
+            error: `Please wait ${waitSec} seconds before requesting another code.`,
+          });
+        }
+      }
+      next(err);
+    }
   },
 };

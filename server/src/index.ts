@@ -59,7 +59,6 @@ const io = new SocketIOServer(httpServer, {
 });
 setIO(io);
 
-// Authenticate every connecting socket
 io.use((socket, next) => {
   const token = socket.handshake.auth?.token;
   if (typeof token !== "string") {
