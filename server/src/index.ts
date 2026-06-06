@@ -19,14 +19,30 @@ import labelFlatRoutes from "./routes/labelFlat.routes.js";
 import commentRoutes from "./routes/comment.routes.js";
 import commentFlatRoutes from "./routes/commentFlat.routes.js";
 import { setIO } from "./lib/realtime.js";
-import memberRoutes from './routes/member.routes.js';
-import { memberController } from './controllers/member.controller.js';
+import memberRoutes from "./routes/member.routes.js";
+import { memberController } from "./controllers/member.controller.js";
 import { sendEmail } from "./lib/email.js";
 import { generateOtp } from "./lib/otp.js";
 
 const app = express();
 
-app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+const allowedOrigins = (
+  process.env.CORS_ORIGIN ?? "http://localhost:5173,http://localhost:8080"
+)
+  .split(",")
+  .map((o) => o.trim());
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      // Allow requests with no origin (mobile apps, curl, server-to-server)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      return callback(new Error(`CORS: origin ${origin} not allowed`));
+    },
+    credentials: true,
+  }),
+);
 app.use(express.json());
 app.use(cookieParser());
 
@@ -42,7 +58,7 @@ app.use("/api/issues/:issueId/labels", authMiddleware, labelRoutes);
 app.use("/api/labels", authMiddleware, labelFlatRoutes);
 app.use("/api/issues/:issueId/comments", authMiddleware, commentRoutes);
 app.use("/api/comments", authMiddleware, commentFlatRoutes);
-app.use('/api/workspaces/:workspaceId/members', authMiddleware, memberRoutes);
+app.use("/api/workspaces/:workspaceId/members", authMiddleware, memberRoutes);
 app.get("/api/me/roles", authMiddleware, (req, res, next) => {
   void memberController.listMyRoles(req, res, next);
 });
@@ -53,7 +69,7 @@ const httpServer = createServer(app);
 
 const io = new SocketIOServer(httpServer, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigins,
     credentials: true,
   },
 });

@@ -48,6 +48,9 @@ COPY --from=builder /app/dist/generated ./dist/generated
 # Copy prisma schema (needed at runtime for migrations)
 COPY --from=builder /app/prisma ./prisma
 
+# Copy prisma config (needed for migrate deploy in Prisma 7)
+COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
+
 # Switch to non-root user
 RUN chown -R nodejs:nodejs /app
 USER nodejs
