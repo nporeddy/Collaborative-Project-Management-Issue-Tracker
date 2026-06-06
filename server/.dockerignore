@@ -1,0 +1,36 @@
+# Dependencies — installed fresh inside the container
+node_modules
+npm-debug.log
+
+# Build outputs — rebuilt during the Docker build
+dist
+build
+
+# Environment files — secrets stay outside images
+.env
+.env.local
+.env.*.local
+
+# Source control
+.git
+.gitignore
+
+# IDE
+.vscode
+.idea
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test/Coverage
+coverage
+.nyc_output
+
+# Logs
+logs
+*.log
+
+# Prisma — we'll regenerate inside the container
+src/generated
