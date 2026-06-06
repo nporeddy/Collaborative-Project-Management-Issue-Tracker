@@ -13,14 +13,16 @@ export function connectSocket(token: string): Socket {
     socket.removeAllListeners();
     socket.disconnect();
   }
+  const SOCKET_URL =
+  import.meta.env.VITE_API_URL?.replace(/\/api\/?$/, "") ??
+  "http://localhost:4000";
 
-  socket = io("http://localhost:4000", {
+  socket = io(SOCKET_URL, {
     auth: { token },
     autoConnect: true,
     transports: ["websocket", "polling"],
   });
 
-  // Handle auth failures during reconnect
   socket.on("connect_error", async (err) => {
     if (err.message.includes("token") || err.message.includes("auth")) {
       if (!getTokenFn || !socket) return;
