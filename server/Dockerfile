@@ -19,6 +19,7 @@ COPY tsconfig.json ./
 
 # Now copy source
 COPY src ./src
+COPY start.sh ./
 
 # Generate Prisma client — fake DATABASE_URL only for the generate step (doesn't connect)
 RUN DATABASE_URL="postgresql://placeholder:placeholder@localhost:5432/placeholder" npx prisma generate
@@ -51,6 +52,10 @@ COPY --from=builder /app/prisma ./prisma
 # Copy prisma config (needed for migrate deploy in Prisma 7)
 COPY --from=builder /app/prisma.config.ts ./prisma.config.ts
 
+# Copy startup script
+COPY --from=builder /app/start.sh ./start.sh
+RUN chmod +x start.sh
+
 # Switch to non-root user
 RUN chown -R nodejs:nodejs /app
 USER nodejs
@@ -59,4 +64,4 @@ USER nodejs
 EXPOSE 4000
 
 # Start command — adjust if your entry point differs
-CMD ["node", "dist/index.js"]
+CMD ["./start.sh"]
