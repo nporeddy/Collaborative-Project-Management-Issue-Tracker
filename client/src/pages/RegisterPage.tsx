@@ -4,17 +4,19 @@ import { useAuth } from "../contexts/AuthContext";
 import AuthLayout from "../components/AuthLayout";
 import Input from "../components/Input";
 import Button from "../components/Button";
+import PasswordRequirements from "../components/PasswordRequirements";
+import { validatePassword } from "../lib/passwordRules";
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register, logout, user } = useAuth();
   const navigate = useNavigate();
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [passwordFocused, setPasswordFocused] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const { logout, user } = useAuth();
 
   useEffect(() => {
     if (user && !user.emailVerified) {
@@ -22,12 +24,14 @@ export default function RegisterPage() {
     }
   }, [user, logout]);
 
+  const passwordValid = validatePassword(password);
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
 
-    if (password.length < 8) {
-      setError("Password must be at least 8 characters.");
+    if (!passwordValid) {
+      setError("Password doesn't meet all requirements.");
       return;
     }
 
@@ -98,9 +102,14 @@ export default function RegisterPage() {
               setPassword(e.target.value);
               if (error) setError(null);
             }}
-            placeholder="At least 8 characters"
+            onFocus={() => setPasswordFocused(true)}
+            placeholder="Pick a strong password"
             required
             autoComplete="new-password"
+          />
+          <PasswordRequirements
+            password={password}
+            show={passwordFocused || password.length > 0}
           />
         </div>
 
@@ -110,7 +119,11 @@ export default function RegisterPage() {
           </div>
         )}
 
-        <Button type="submit" disabled={loading} className="w-full">
+        <Button
+          type="submit"
+          disabled={loading || !passwordValid || !name || !email}
+          className="w-full"
+        >
           {loading ? "Creating account…" : "Create account"}
         </Button>
       </form>

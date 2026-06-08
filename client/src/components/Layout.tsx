@@ -1,12 +1,14 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import { useAuth } from "../contexts/AuthContext";
 import UnverifiedBanner from "./UnverifiedBanner";
+import DeleteAccountDialog from "./DeleteAccountDialog";
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const navigate = useNavigate();
   const { user, logout, socketConnected } = useAuth();
+  const [deleteOpen, setDeleteOpen] = useState(false);
 
   const isActive = (path: string) => location.pathname.startsWith(path);
 
@@ -63,6 +65,12 @@ export default function Layout({ children }: { children: ReactNode }) {
             >
               Sign out
             </button>
+            <button
+              onClick={() => setDeleteOpen(true)}
+              className="w-full text-left px-3 py-2 rounded-md text-sm text-text-muted hover:bg-red-50 hover:text-danger transition-colors"
+            >
+              Delete account
+            </button>
           </div>
         )}
       </aside>
@@ -71,6 +79,12 @@ export default function Layout({ children }: { children: ReactNode }) {
         <UnverifiedBanner />
         <div className="max-w-5xl mx-auto px-8 py-10 w-full">{children}</div>
       </main>
+      {deleteOpen && (
+        <DeleteAccountDialog
+          open={deleteOpen}
+          onClose={() => setDeleteOpen(false)}
+        />
+      )}
     </div>
   );
 }

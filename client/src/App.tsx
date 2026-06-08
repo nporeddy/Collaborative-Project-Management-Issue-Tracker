@@ -9,6 +9,9 @@ import ProjectsPage from "./pages/ProjectsPage";
 import IssuesPage from "./pages/IssuesPage";
 import MembersPage from "./pages/MembersPage";
 import VerifyEmailPage from "./pages/VerifyEmailPage";
+import ForgotPasswordPage from "./pages/ForgotPasswordPage";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
+
 export default function App() {
   return (
     <Routes>
@@ -33,6 +36,22 @@ export default function App() {
         element={
           <PublicRoute>
             <VerifyEmailPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <PublicRoute>
+            <ForgotPasswordPage />
+          </PublicRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <PublicRoute>
+            <ResetPasswordPage />
           </PublicRoute>
         }
       />

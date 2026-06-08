@@ -4,7 +4,11 @@ import { authService } from "../services/auth.service.js";
 
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: z
+    .string()
+    .min(8)
+    .regex(/\d/, "Must contain a number")
+    .regex(/[a-zA-Z]/, "Must contain a letter"),
   name: z.string().min(1).max(100),
 });
 
@@ -20,6 +24,20 @@ const verifyEmailSchema = z.object({
 
 const resendSchema = z.object({
   email: z.string().email(),
+});
+
+const forgotPasswordSchema = z.object({
+  email: z.string().email(),
+});
+
+const resetPasswordSchema = z.object({
+  email: z.string().email(),
+  code: z.string().length(6),
+  newPassword: z
+    .string()
+    .min(8)
+    .regex(/\d/, "Must contain a number")
+    .regex(/[a-zA-Z]/, "Must contain a letter"),
 });
 
 export const authController = {
@@ -148,6 +166,60 @@ export const authController = {
             error: `Please wait ${waitSec} seconds before requesting another code.`,
           });
         }
+      }
+      next(err);
+    }
+  },
+
+  async forgotPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = forgotPasswordSchema.parse(req.body);
+      await authService.requestPasswordReset(data.email);
+      res.json({
+        message: "If an account exists, a password reset code has been sent.",
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "RESEND_TOO_SOON") {
+        const waitSec = (err as Error & { waitSec?: number }).waitSec ?? 60;
+        return res.status(429).json({
+          error: `Please wait ${waitSec} seconds before requesting another code.`,
+        });
+      }
+      next(err);
+    }
+  },
+
+  async resetPassword(req: Request, res: Response, next: NextFunction) {
+    try {
+      const data = resetPasswordSchema.parse(req.body);
+      await authService.resetPassword(data);
+      res.json({
+        message: "Password reset. Please log in with your new password.",
+      });
+    } catch (err) {
+      if (err instanceof Error && err.message === "INVALID_CODE") {
+        return res.status(400).json({ error: "Invalid or expired reset code" });
+      }
+      next(err);
+    }
+  },
+  async deleteAccount(req: Request, res: Response, next: NextFunction) {
+    try {
+      if (!req.user) {
+        return res.status(401).json({ error: "Not authenticated" });
+      }
+      await authService.deleteAccount(req.user.id);
+      res.clearCookie("refreshToken", { path: "/api/auth" });
+      res.status(204).send();
+    } catch (err) {
+      if (err instanceof Error && err.message === "SOLE_OWNER") {
+        const workspaces =
+          (err as Error & { workspaces?: string[] }).workspaces ?? [];
+        return res.status(409).json({
+          error: "SOLE_OWNER",
+          message: `You're the only Owner of: ${workspaces.join(", ")}. Transfer ownership or delete those workspaces first.`,
+          workspaces,
+        });
       }
       next(err);
     }

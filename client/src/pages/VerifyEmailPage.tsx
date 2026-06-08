@@ -134,15 +134,25 @@ export default function VerifyEmailPage() {
       setResendCooldown(RESEND_COOLDOWN_SECONDS);
       setResentNotice(true);
     } catch (err: unknown) {
+      const response = (
+        err as {
+          response?: { status?: number; data?: { error?: string } };
+        }
+      )?.response;
       const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data
-          ?.error ?? "Failed to resend. Please try again.";
+        response?.data?.error ?? "Failed to resend. Please try again.";
       setError(msg);
+      if (response?.status === 429) {
+        const match = msg.match(/(\d+)\s*seconds?/);
+        const wait = match?.[1]
+          ? parseInt(match[1], 10)
+          : RESEND_COOLDOWN_SECONDS;
+        setResendCooldown(wait);
+      }
     } finally {
       setResending(false);
     }
   };
-
   return (
     <AuthLayout>
       <h2 className="text-lg font-semibold text-text">Verify your email</h2>

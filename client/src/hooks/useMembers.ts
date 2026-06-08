@@ -43,7 +43,7 @@ export function useRemoveMember(workspaceId: string) {
 export function useUpdateMemberRole(workspaceId: string) {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (vars: { userId: string; role: "ADMIN" | "MEMBER" }) =>
+    mutationFn: (vars: { userId: string; role: "OWNER" | "ADMIN" | "MEMBER" }) =>
       updateMemberRole(workspaceId, vars.userId, vars.role),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["members", workspaceId] });

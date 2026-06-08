@@ -23,9 +23,6 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const user = await login(email, password);
-        console.log("LOGIN RESULT:", user);                        // ← add this
-  console.log("emailVerified value:", user.emailVerified);   // ← add this
-  console.log("!user.emailVerified:", !user.emailVerified);
       if (!user.emailVerified) {
         navigate(`/verify-email?email=${encodeURIComponent(email)}`, {
           replace: true,
@@ -71,6 +68,12 @@ export default function LoginPage() {
           <label className="block text-xs font-medium text-text-muted mb-1">
             Password
           </label>
+          <Link
+            to="/forgot-password"
+            className="text-xs text-primary hover:text-primary-hover font-medium"
+          >
+            Forgot?
+          </Link>
           <Input
             type="password"
             value={password}

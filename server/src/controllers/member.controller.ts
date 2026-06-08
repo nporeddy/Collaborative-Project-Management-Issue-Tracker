@@ -9,7 +9,7 @@ const addSchema = z.object({
 });
 
 const updateRoleSchema = z.object({
-  role: z.enum(["ADMIN", "MEMBER"]),
+  role: z.enum(["OWNER", "ADMIN", "MEMBER"]),
 });
 
 export const memberController = {

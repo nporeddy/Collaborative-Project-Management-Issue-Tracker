@@ -91,7 +91,7 @@ export default function MembersPage() {
 
   const handleRoleChange = (
     memberUserId: string,
-    newRole: "ADMIN" | "MEMBER",
+    newRole: "OWNER" | "ADMIN" | "MEMBER",
   ) => {
     setActionError(null);
     roleMutation.mutate(
@@ -242,7 +242,7 @@ export default function MembersPage() {
                     onChange={(e) =>
                       handleRoleChange(
                         m.user.id,
-                        e.target.value as "ADMIN" | "MEMBER",
+                        e.target.value as "OWNER" | "ADMIN" | "MEMBER"
                       )
                     }
                     disabled={isWorking}
@@ -250,6 +250,7 @@ export default function MembersPage() {
                   >
                     <option value="MEMBER">Member</option>
                     <option value="ADMIN">Admin</option>
+                    <option value="OWNER">Owner</option>
                   </select>
                 ) : (
                   <Badge tone={roleTone[m.role]}>{roleLabel[m.role]}</Badge>

@@ -33,7 +33,7 @@ export const removeMember = async (
 export const updateMemberRole = async (
   workspaceId: string,
   userId: string,
-  role: "ADMIN" | "MEMBER"
+  role: "OWNER" | "ADMIN" | "MEMBER"
 ): Promise<Member> => {
   const res = await api.patch(`/workspaces/${workspaceId}/members/${userId}`, {
     role,
