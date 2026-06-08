@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getWorkspaces, createWorkspace } from "../api/workspaces";
-import { api } from "../api/client"
+import { api } from "../api/client";
 export function useWorkspaces() {
   return useQuery({ queryKey: ["workspaces"], queryFn: getWorkspaces });
 }
@@ -11,6 +11,7 @@ export function useCreateWorkspace() {
     mutationFn: createWorkspace,
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
+      queryClient.invalidateQueries({ queryKey: ["my-roles"] });
     },
   });
 }
@@ -28,7 +29,9 @@ export function useUpdateWorkspace() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (vars: { id: string; name: string }) => {
-      const res = await api.patch(`/workspaces/${vars.id}`, { name: vars.name });
+      const res = await api.patch(`/workspaces/${vars.id}`, {
+        name: vars.name,
+      });
       return res.data;
     },
     onSuccess: () => {
@@ -46,7 +49,7 @@ export function useDeleteWorkspace() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workspaces"] });
-      queryClient.invalidateQueries({ queryKey: ["my-roles"] });   
+      queryClient.invalidateQueries({ queryKey: ["my-roles"] });
     },
   });
 }
